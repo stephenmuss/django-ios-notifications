@@ -57,7 +57,7 @@ class APNService(models.Model):
 
     def write_message(self, notification, devices):
         if not isinstance(notification, Notification):
-            raise TypeError('notification should be an instance of notify_ios.models.Notification')
+            raise TypeError('notification should be an instance of ios_notifications.models.Notification')
         if self.ssl_socket is None:
             raise NotConnectedException
 
@@ -80,7 +80,7 @@ class APNService(models.Model):
         if len(payload) > 256:
             raise NotificationPayloadSizeExceeded
         if not isinstance(device, Device):
-            raise TypeError('device must be an instance of notify_ios.models.Device')
+            raise TypeError('device must be an instance of ios_notifications.models.Device')
 
         _format = self.fmt % len(payload)
         msg = struct.pack(_format, chr(0), 32, unhexlify(device.token), len(payload), payload)
@@ -121,11 +121,11 @@ class Device(models.Model):
 
     def push_notification(self, notification):
         """
-        Pushes a notify_ios.models.Notification instance to an the device.
+        Pushes a ios_notifications.models.Notification instance to an the device.
         For more details see http://developer.apple.com/library/mac/#documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/ApplePushService/ApplePushService.html
         """
         if not isinstance(notification, Notification):
-            raise TypeError('notification should be an instance of notify_ios.models.Notification')
+            raise TypeError('notification should be an instance of ios_notifications.models.Notification')
 
         if notification.service.connect():
             notification.service.write_message(notification, (self,))

@@ -1,4 +1,4 @@
-django-notify-ios
+django-ios-notifications
 =================
 
-Django Notify iOS makes it easy to send push notifications to iOS devices
+Django iOS Notifications makes it easy to send push notifications to iOS devices

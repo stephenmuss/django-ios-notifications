@@ -1,5 +1,5 @@
 from django.contrib import admin
-from notify_ios.models import Device, Notification, APNService
+from ios_notifications.models import Device, Notification, APNService
 
 
 admin.site.register(Device)
