@@ -31,7 +31,7 @@ class APNService(models.Model):
 
     PORT = 2195
     connection = None
-    fmt = '!BH32sH%ds'
+    fmt = '!cH32sH%ds'
 
     def push_notification_to_all_devices(self, notification):
         if self.connect():
@@ -46,10 +46,11 @@ class APNService(models.Model):
         cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, self.certificate)
         pkey = OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, self.private_key)
         context = OpenSSL.SSL.Context(OpenSSL.SSL.SSLv3_METHOD)
-        context.use_privatekey(pkey)
         context.use_certificate(cert)
+        context.use_privatekey(pkey)
         self.connection = OpenSSL.SSL.Connection(context, sock)
         self.connection.connect((self.hostname, self.PORT))
+        self.connection.set_connect_state()
         try:
             self.connection.do_handshake()
             return True
@@ -69,7 +70,7 @@ class APNService(models.Model):
         if notification.sound is not None:
             aps['sound'] = notification.sound
 
-        message = {'aps': {'aps': aps}}
+        message = {'aps': aps}
         payload = json.dumps(message, separators=(',', ':'))
 
         if len(payload) > 256:
@@ -84,12 +85,12 @@ class APNService(models.Model):
         if not isinstance(device, Device):
             raise TypeError('device must be an instance of ios_notifications.models.Device')
 
-        _format = self.fmt % len(payload)
-        msg = struct.pack(_format, 0, 32, unhexlify(device.token), len(payload), payload)
+        msg = struct.pack(self.fmt % len(payload), chr(0), 32, unhexlify(device.token), len(payload), payload)
         return msg
 
     def disconnect(self):
         if self.connection is not None:
+            self.connection.shutdown()
             self.connection.close()
 
     def __unicode__(self):
