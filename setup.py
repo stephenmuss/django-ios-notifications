@@ -21,5 +21,9 @@ setup(
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Application Frameworks',
     ],
+    install_requires=[
+        'Django>=1.2',
+        'pyOpenSSL>=0.13'
+    ],
     zip_safe=False
 )

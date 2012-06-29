@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import socket
-import ssl
+import OpenSSL
 import struct
 from binascii import unhexlify
 
@@ -30,7 +30,7 @@ class APNService(models.Model):
     private_key = models.TextField(null=True, blank=True)
 
     PORT = 2195
-    ssl_socket = None
+    connection = None
     fmt = '!BH32sH%ds'
 
     def push_notification_to_all_devices(self, notification):
@@ -39,31 +39,33 @@ class APNService(models.Model):
             self.disconnect()
 
     def connect(self):
-        # TODO: ssl in Python 2.x does not support certficates as a string
+        # ssl in Python < 3.2 does not support certificates/keys as strings.
         # See http://bugs.python.org/issue3823
-        # May need to look into pyOpenSSL or M2Crypto to handle ssl connection
-        # both of which expose certificate and key objects
+        # Therefore pyOpenSSL which lets us do this is a dependancy.
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        certificate = self.certificate
-        if self.private_key is not None:
-            certificate += self.private_key
+        cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, self.certificate)
+        pkey = OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, self.private_key)
+        context = OpenSSL.SSL.Context(OpenSSL.SSL.SSLv3_METHOD)
+        context.use_privatekey(pkey)
+        context.use_certificate(cert)
+        self.connection = OpenSSL.SSL.Connection(context, sock)
+        self.connection.connect((self.hostname, self.PORT))
         try:
-            self.ssl_socket = ssl.wrap_socket(sock, certfile=certificate, ssl_version=ssl.PROTOCOL_SSLv3)
-            self.ssl_socket.connect((self.hostname, self.PORT))
+            self.connection.do_handshake()
             return True
-        except ssl.SSLError as e:
-            print e
-            return False
+        except Exception as e:
+            print e, e.__class__
+        return False
 
     def write_message(self, notification, devices):
         if not isinstance(notification, Notification):
             raise TypeError('notification should be an instance of ios_notifications.models.Notification')
-        if self.ssl_socket is None:
+        if self.connection is None:
             raise NotConnectedException
 
         aps = {'alert': notification.message}
         if notification.badge is not None:
-            aps['badge'] = notification.bage
+            aps['badge'] = notification.badge
         if notification.sound is not None:
             aps['sound'] = notification.sound
 
@@ -74,7 +76,7 @@ class APNService(models.Model):
             raise NotificationPayloadSizeExceeded
 
         for device in devices:
-            self.ssl_socket.write(self.pack_message(payload, device))
+            self.connection.send(self.pack_message(payload, device))
 
     def pack_message(self, payload, device):
         if len(payload) > 256:
@@ -83,12 +85,12 @@ class APNService(models.Model):
             raise TypeError('device must be an instance of ios_notifications.models.Device')
 
         _format = self.fmt % len(payload)
-        msg = struct.pack(_format, chr(0), 32, unhexlify(device.token), len(payload), payload)
+        msg = struct.pack(_format, 0, 32, unhexlify(device.token), len(payload), payload)
         return msg
 
     def disconnect(self):
-        if self.ssl_socket is not None:
-            self.ssl_socket.close()
+        if self.connection is not None:
+            self.connection.close()
 
     def __unicode__(self):
         return u'APNService %s' % self.name
