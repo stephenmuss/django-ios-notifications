@@ -3,6 +3,7 @@ import socket
 import OpenSSL
 import struct
 from binascii import unhexlify
+import datetime
 
 from django.db import models
 from django.utils import simplejson as json
@@ -33,9 +34,16 @@ class APNService(models.Model):
     connection = None
     fmt = '!cH32sH%ds'
 
-    def push_notification_to_all_devices(self, notification):
+    def push_notification_to_devices(self, notification, devices=None):
+        """
+        Sends the specific notification to devices.
+        if `devices` is not supplied, all devices in the `APNService`'s device
+        list will be sent the notification.
+        """
+        if devices is None:
+            devices = self.device_set.filter(is_active=True)
         if self.connect():
-            self.write_message(notification, self.device_set.filter(is_active=True))
+            self._write_message(notification, devices)
             self.disconnect()
 
     def connect(self):
@@ -58,11 +66,13 @@ class APNService(models.Model):
             print e, e.__class__
         return False
 
-    def write_message(self, notification, devices):
+    def _write_message(self, notification, devices):
         if not isinstance(notification, Notification):
             raise TypeError('notification should be an instance of ios_notifications.models.Notification')
+
         if self.connection is None:
-            raise NotConnectedException
+            if not self.connect():
+                return
 
         aps = {'alert': notification.message}
         if notification.badge is not None:
@@ -77,7 +87,20 @@ class APNService(models.Model):
             raise NotificationPayloadSizeExceeded
 
         for device in devices:
-            self.connection.send(self.pack_message(payload, device))
+            try:
+                self.connection.send(self.pack_message(payload, device))
+                device.last_notified_at = datetime.datetime.now()
+            except OpenSSL.SSL.WantWriteError:
+                self.disconnect()
+                i = devices.index(device)
+                if isinstance(devices, models.query.QuerySet):
+                    devices.save()
+                devices[:i].save()
+                return self._write_message(notification, devices[i:]) if self.connect() else None
+        if isinstance(devices, models.query.QuerySet):
+            devices.save()
+        notification.last_sent_at = datetime.datetime.now()
+        notification.save()
 
     def pack_message(self, payload, device):
         if len(payload) > 256:
@@ -130,9 +153,8 @@ class Device(models.Model):
         if not isinstance(notification, Notification):
             raise TypeError('notification should be an instance of ios_notifications.models.Notification')
 
-        if notification.service.connect():
-            notification.service.write_message(notification, (self,))
-            notification.service.disconnect()
+        notification.service.push_notification_to_devices(notification, [self])
+        self.save()
 
     def __unicode__(self):
         return u'Device %s' % self.token
