@@ -26,7 +26,7 @@ class APNService(models.Model):
     `certificate`.
     """
     name = models.CharField(max_length=255)
-    hostname = models.CharField(max_length=255)
+    hostname = models.CharField(max_length=255, unique=True)
     certificate = models.TextField()
     private_key = models.TextField()
 
@@ -89,16 +89,15 @@ class APNService(models.Model):
         for device in devices:
             try:
                 self.connection.send(self.pack_message(payload, device))
-                device.last_notified_at = datetime.datetime.now()
             except OpenSSL.SSL.WantWriteError:
                 self.disconnect()
                 i = devices.index(device)
                 if isinstance(devices, models.query.QuerySet):
-                    devices.save()
-                devices[:i].save()
+                    devices.update(last_notified_at=datetime.datetime.now())
+                devices[:i].update(last_notified_at=datetime.datetime.now())
                 return self._write_message(notification, devices[i:]) if self.connect() else None
         if isinstance(devices, models.query.QuerySet):
-            devices.save()
+            devices.update(last_notified_at=datetime.datetime.now())
         notification.last_sent_at = datetime.datetime.now()
         notification.save()
 
