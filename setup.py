@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import ios_notifications
 import os
 
@@ -11,7 +11,8 @@ setup(
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
     url='https://github.com/stephenmuss/django-ios-notifications',
     license='BSD License',
-    packages=['ios_notifications'],
+    packages=find_packages(),
+    include_package_data=True,
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
