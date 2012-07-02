@@ -10,7 +10,7 @@
 {% block content %}
 {{ block.super }}
 {% with notification=adminform.form.instance %}
-{% if notification %}
+{% if notification and notification.id %}
 <div id="send_notification">
     <h2>Push this notification to devices</h2>
     <p>Use the button below to push this notification to all devices recognised by the notification's APN Service</p>
