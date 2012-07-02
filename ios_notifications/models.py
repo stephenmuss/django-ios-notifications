@@ -28,7 +28,7 @@ class APNService(models.Model):
     name = models.CharField(max_length=255)
     hostname = models.CharField(max_length=255)
     certificate = models.TextField()
-    private_key = models.TextField(null=True, blank=True)
+    private_key = models.TextField()
 
     PORT = 2195
     connection = None
@@ -140,10 +140,14 @@ class Device(models.Model):
     """
     Represents an iOS device with unique token.
     """
+    PLATFORM_CHOICES = (('iPhone', 'iPhone'), ('iPad', 'iPad'), ('iPod', 'iPod'))
+
     token = models.CharField(max_length=64, blank=False, null=False)
     is_active = models.BooleanField(default=True)
     added_at = models.DateTimeField(auto_now_add=True)
     last_notified_at = models.DateTimeField(null=True, blank=True)
+    platform = models.CharField(max_length=30, blank=True, null=True, choices=PLATFORM_CHOICES)
+    display = models.CharField(max_length=30, blank=True, null=True)
 
     def push_notification(self, notification):
         """
