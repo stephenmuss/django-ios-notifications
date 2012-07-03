@@ -134,6 +134,17 @@ class Notification(models.Model):
     def __unicode__(self):
         return u'Notification: %s' % self.message
 
+    @staticmethod
+    def is_valid_length(message, badge=None, sound=None):
+        aps = {'alert': message}
+        if badge is not None:
+            aps['badge'] = badge
+        if sound is not None:
+            aps['sound'] = sound
+        message = {'aps': aps}
+        payload = json.dumps(message, separators=(',', ':'))
+        return len(payload) <= 256
+
 
 class Device(models.Model):
     """

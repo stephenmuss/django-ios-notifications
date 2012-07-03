@@ -1,2 +1,3 @@
 include README.md
 recursive-include ios_notifications/templates *
+recursive-include ios_notifications/management *
