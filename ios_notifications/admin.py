@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django import forms
 from ios_notifications.models import Device, Notification, APNService
-from django.conf.urls import patterns, url
+from django.conf.urls.defaults import patterns, url
 from django.template.response import TemplateResponse
 from django.shortcuts import get_object_or_404
 
