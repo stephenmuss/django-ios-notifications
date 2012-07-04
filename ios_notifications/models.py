@@ -173,7 +173,7 @@ class Device(models.Model):
     token = models.CharField(max_length=64, blank=False, null=False)
     is_active = models.BooleanField(default=True)
     service = models.ForeignKey(APNService)
-    users = models.ManyToManyField(User, related_name='ios_devices')
+    users = models.ManyToManyField(User, null=True, blank=True, related_name='ios_devices')
     added_at = models.DateTimeField(auto_now_add=True)
     last_notified_at = models.DateTimeField(null=True, blank=True)
     platform = models.CharField(max_length=30, blank=True, null=True, choices=PLATFORM_CHOICES)

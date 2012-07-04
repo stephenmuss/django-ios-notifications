@@ -27,5 +27,5 @@ class Command(BaseCommand):
             raise CommandError('FeedbackService with id %d does not exist' % service_id)
 
         num_deactivated = service.call()
-        output = '%d device%s were deactivated.\n' % (num_deactivated, '' if num_deactivated == 1 else 's')
+        output = '%d device%s deactivated.\n' % (num_deactivated, ' was' if num_deactivated == 1 else 's were')
         self.stdout.write(output)
