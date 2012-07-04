@@ -30,20 +30,28 @@ Setting up the APN Services
 Before you can add some devices and push notifications you'll need to set up an APN Service.
 An example of how to do this in a development environment follows.
 
-Start up your development server: `./manage.py runserver` and open up the following url in a web browser http://127.0.0.1:8000/admin/ios_notifications/apnservice/add/. You'll see a form to be able to create a new APN Service.
+Start up your development server: `./manage.py runserver` and open up the following url in a web browser:
 
-I am making the assumption that you have already created a private key and certificate. If not I suggest you follow one of the online guides to complete this step. One such example can be found at http://www.raywenderlich.com/3443/apple-push-notification-services-tutorial-part-12
+http://127.0.0.1:8000/admin/ios_notifications/apnservice/add/.
+You'll see a form to be able to create a new APN Service.
+
+I am making the assumption that you have already created a private key and certificate.
+If not I suggest you follow one of the online guides to complete this step.
+One such example can be found at http://www.raywenderlich.com/3443/apple-push-notification-services-tutorial-part-12
 
 The name of the service can be any arbitrary string.
 
-The hostname will need to be a valid hostname for one of the Apple APN Service hosts. Currently this is `gateway.sandbox.push.apple.com` for sandbox testing and `gateway.push.apple.com` for production use.
+The hostname will need to be a valid hostname for one of the Apple APN Service hosts.
+Currently this is `gateway.sandbox.push.apple.com` for sandbox testing and `gateway.push.apple.com` for production use.
 
 For the certificate and private key fields paste in your certificate and key including the lines with:
 
-`----BEGIN CERTIFICATE-----`,
-`-----END CERTIFICATE-----`,
-`-----BEGIN RSA PRIVATE KEY-----`
-and `-----END RSA PRIVATE KEY-----`.
+```
+----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+-----BEGIN RSA PRIVATE KEY-----
+-----END RSA PRIVATE KEY-----
+```
 
 After this you are ready to save the APN Service.
 
@@ -51,17 +59,21 @@ After this you are ready to save the APN Service.
 Registering devices
 -----------------
 
-There are a few different ways you can register a device. You can either create the device in the admin interface at http://127.0.0.1:8000/admin/ios_notifications/device/add/ or use the API provided by django-ios-notifications to do so.
+There are a few different ways you can register a device. You can either create the device in the admin interface at
+http://127.0.0.1:8000/admin/ios_notifications/device/add/ or use the API provided by django-ios-notifications to do so.
 
-If you want to add the device through the admin interface you will need to know the device's token represented by 64 hexadecimal characters (be sure to exclude any `<`, `>` and whitespace characters).
+If you want to add the device through the admin interface you will need to know the device's token represented by 64
+hexadecimal characters (be sure to exclude any `<`, `>` and whitespace characters).
 
-Otherwise the django-ios-notifications API provides a REST interface for you to be able to add the device; this would normally be done by sending a request from you iOS app.
+Otherwise the django-ios-notifications API provides a REST interface for you to be able to add the device;
+this would normally be done by sending a request from you iOS app.
 
 To register your device you will need to make a POST request from your device and pass the appropriate parameters as part of the URL.
 
 The URL requires you to substitute in the device's 64 character hexadecimal token and the id of the APN Service to associate with this device.
 
-For example if you wanted to register a device with the token `0fd12510cfe6b0a4a89dc7369d96df956f991e66131dab63398734e8000d0029` using an APN Service with the id 10 you would make a POST request to the following location:
+For example if you wanted to register a device with the token `0fd12510cfe6b0a4a89dc7369d96df956f991e66131dab63398734e8000d0029`
+using an APN Service with the id 10 you would make a POST request to the following location:
 
 http://127.0.0.1:8000/ios-notifications/register-device/0fd12510cfe6b0a4a89dc7369d96df956f991e66131dab63398734e8000d0029/10/
 
@@ -88,31 +100,57 @@ You will need to provide some arguments to the command in order to create and se
 
 There are two required options and two optional ones.
 
-The required arguments are `--message` and `--service`.
+The required arguments are:
 
-`--message` is a string containing the main message of your notification. e.g. `--message='This is a push notification from Django iOS Notifications!'`
+* `--message` is a string containing the main message of your notification. e.g. `--message='This is a push notification from Django iOS Notifications!'`
+* `--service` is the id of the APN Service you wish to use. e.g. `--service=123`.
 
-`--service` is the id of the APN Service you wish to use. e.g. `--service=123`.
+The optional arguments you may pass are:
 
-The optional arguments you may pass are `--badge` and `--sound`.
+* `--badge` is an integer value to represent the badge value that will appear over your app's springboard icon after receiving the notification. e.g. `--badge=2`.
+* `--sound` is the sound to be played when the device receives your application. This can either be one of the built in sounds or one that you have included in your app. e.g. `--sound=default`.
 
-`--badge` is an integer value to represent the badge value that will appear over your app's springboard icon after receiving the notification.
-e.g. `--badge=2`.
-
-`--sound` is the sound to be played when the device receives your application. This can either be one of the built in sounds or one that you have
-included in your app. e.g. `--sound=default`.
-
-Note that if you do not provide the optional arguments the default values for both are `None`. This means the device will neither play a sound
-or update the badge of your app's icon when receiving the notification.
+Note that if you do not provide the optional arguments the default values for both are `None`. This means the device will
+neither play a sound or update the badge of your app's icon when receiving the notification.
 
 A full example: `./manage.py push_ios_notification --message='This is a push notification from Django iOS Notifications!' --service=123 --badge=1 --sound=default`.
 
 
-Calling the Feedback Service
+The Feedback Service and deactivating devices
 -----------------
 
-To be updated...
+The Feedback Service is used to determine to which devices you should no longer push notifications.
+This is normally the case once a user has uninstalled your app from his or her device.
 
+According to Apple:
+
+> APNs monitors providers for their diligence in checking the feedback service and refraining from sending push notifications to nonexistent applications on devices.
+
+(https://developer.apple.com/library/ios/#documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingWIthAPS/CommunicatingWIthAPS.html#//apple_ref/doc/uid/TP40008194-CH101-SW3)
+
+So it is good practice to ensure that you don't push notifications to devices which no longer have your app installed.
+
+Django iOS Notifications provides a `FeedbackService` class for you to discover to which devices you should no longer
+send notifications.
+
+You can add a FeedbackService in the admin via http://127.0.0.1:8000/admin/ios_notifications/feedbackservice/add/.
+Hopefully by now it should be self-explanatory what the fields are for this class.
+
+As with the `APNService` you will need to provide a hostname for any instances of `FeedbackService`.
+For sandbox environments you can currently use `feedback.sandbox.push.apple.com` and in production you should use `feedback.push.apple.com`.
+
+You should set the APNService relationship for FeedbackService according to your environment.
+
+Once you have created your FeedbackService instance you can call it to deactivate any devices it informs you of.
+
+To do this you can run the `call_feedback_service` management command. This will call the feedback service and deactivating any devices
+it is informed of by the service (by setting `is_active` to `False`).
+
+The `call_feedback_service` command takes one required argument:
+
+* --feedback-service: The id of the FeedbackService to call. e.g. `--feedback-service=123`.
+
+A full example: `./manage.py call_feedback_service --feedback-service=123`
 
 ***
 
