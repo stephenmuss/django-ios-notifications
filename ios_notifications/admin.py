@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django import forms
-from ios_notifications.models import Device, Notification, APNService
+from ios_notifications.models import Device, Notification, APNService, FeedbackService
 from django.conf.urls.defaults import patterns, url
 from django.template.response import TemplateResponse
 from django.shortcuts import get_object_or_404
@@ -43,8 +43,8 @@ class NotificationAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super(NotificationAdmin, self).get_urls()
         notification_urls = patterns('',
-            url(r'^(?P<id>\d+)/push-notification/$', self.admin_site.admin_view(self.admin_push_notification), name='admin_push_notification'),
-        )
+            url(r'^(?P<id>\d+)/push-notification/$', self.admin_site.admin_view(self.admin_push_notification),
+            name='admin_push_notification'),)
         return notification_urls + urls
 
     def admin_push_notification(self, request, **kwargs):
@@ -61,3 +61,4 @@ class NotificationAdmin(admin.ModelAdmin):
 admin.site.register(Device, DeviceAdmin)
 admin.site.register(Notification, NotificationAdmin)
 admin.site.register(APNService, APNServiceAdmin)
+admin.site.register(FeedbackService)

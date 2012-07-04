@@ -14,11 +14,11 @@ You then need to add `ios_notifications` to `INSTALLED_APPS` in your settings fi
 If you want to use the API for registering devices you will also need to make the appropriate changes to your urls file:
 
 ```python
-    urlpatterns = patterns('',
-        ...
-        url(r'^ios-notifications/', include('ios_notifications.urls')),
-        ...
-    )
+urlpatterns = patterns('',
+    ...
+    url(r'^ios-notifications/', include('ios_notifications.urls')),
+    ...
+)
 ```
 
 After that you will need to run `./manage.py syncdb` to create the database tables required for django-ios-notifications.
@@ -106,6 +106,13 @@ Note that if you do not provide the optional arguments the default values for bo
 or update the badge of your app's icon when receiving the notification.
 
 A full example: `./manage.py push_ios_notification --message='This is a push notification from Django iOS Notifications!' --service=123 --badge=1 --sound=default`.
+
+
+Calling the Feedback Service
+-----------------
+
+To be updated...
+
 
 ***
 
