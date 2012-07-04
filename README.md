@@ -152,6 +152,23 @@ The `call_feedback_service` command takes one required argument:
 
 A full example: `./manage.py call_feedback_service --feedback-service=123`
 
+_NOTE:_ You may experience some issues testing the feedback service in a sandbox enviroment.
+This occurs when an app was the last push enabled app for that particular APN Service on the device 
+Once the app is removed it tears down the persistent connection to the APN service. If you want to
+test a feedback service, ensure that you have at least one other app on the device installed which
+receives notifications from the same APN service.
+
+In the case that you want to test an app using the sandbox APN service, I suggest you create another
+dummy app in XCode and in the iOS provisioning portal with push notifications enabled. Install this app
+on any devices you are testing as well as the current app. Now you should be able to uninstall your app
+from the device and try pushing a notification. So long as the dummy app is still installed on your device
+the next time you attempt to call the feedback service all should go according to plan and you will notice
+the device in question has now been deactivated when you view it in the admin interface at
+http://127.0.0.1:8000/admin/ios_notifications/device/
+
+See `Issues with Using the Feedback Service` at http://developer.apple.com/library/ios/#technotes/tn2265/_index.html
+for more details
+
 ***
 
 NOTE: This is a work in progress and is far from being production ready.
