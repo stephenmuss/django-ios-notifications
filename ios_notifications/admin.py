@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.contrib import admin
 from django import forms
 from ios_notifications.models import Device, Notification, APNService, FeedbackService

@@ -231,7 +231,7 @@ class FeedbackService(BaseService):
                 # Nothing to receive
                 pass
             devices = Device.objects.filter(token__in=device_tokens, service=self.apn_service)
-            devices.update(is_active=False)
+            devices.update(is_active=False, deactivated_at=datetime.datetime.now())
             self.disconnect()
             return devices.count()
 

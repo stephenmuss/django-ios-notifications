@@ -73,14 +73,46 @@ To register your device you will need to make a POST request from your device an
 To create a new device you will need to call the API at http://127.0.0.1:8000/ios-notifications/device/
 
 There are two required POST parameters required to complete this operation:
-* token: the device's 64 character hexadecimal token.
-* service: The id in integer format of the APNService instance to be used for this device.
+* `token`: the device's 64 character hexadecimal token.
+* `service`: The id in integer format of the APNService instance to be used for this device.
 
-If the device already exists, the device's `is_active` attribute will be updated to True. Otherwise the device
+If the device already exists, the device's `is_active` attribute will be updated to `True`. Otherwise the device
 will be created.
 
 If successful the API will return the device in serialized JSON format with a status code of 201 if the device was created. If
 the device already existed the response code will be 200.
+
+
+Getting device details
+-----------------
+
+To fetch the details of an existing device using the REST API you should call the following URL in an HTTP GET request:
+
+`http://127.0.0.1:8000/ios-notifications/device/<device_token>/<device_service>/` where:
+* `device_token` in the device's 64 character hexadecimal token.
+* `device_service` is the id in integer format of the device's related APNService model.
+
+For example: `http://127.0.0.1:8000/ios-notifications/device/0fd12510cfe6b0a4a89dc7369d96df956f991e66131dab63398734e8000d0029/1/`.
+
+This will return an HTTP response with the device in JSON format in the response body.
+
+
+Updating devices
+-----------------
+
+The Django iOS Notifications REST interface also provides the means for you to be able to update
+a device via the API.
+
+To update a device you should call the same URL as you would above in *Getting device details*. The HTTP request method
+should be PUT. You can provide any of the following PUT parameters to update the device:
+
+* `users`: A list of user (django.contrib.auth.models.User) ids in integer formate associated with the device.
+* `platform`: A string describing the device's platform. Allowed options are 'iPhone', 'iPad' and 'iPod'.
+* `display`: A string describing the device's display (max 30 characters). e.g. '480x320'.
+
+Although technically permitted, updating any of the device's other attributes through the API is not recommended.
+
+This will return an HTTP response with the device with its updated attributes in JSON format in the response body.
 
 
 Creating and sending notifications
