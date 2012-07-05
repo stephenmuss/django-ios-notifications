@@ -53,6 +53,9 @@ class BaseService(models.Model):
         return False
 
     def disconnect(self):
+        """
+        Closes the SSL socket connection.
+        """
         if self.connection is not None:
             self.connection.shutdown()
             self.connection.close()
@@ -76,6 +79,10 @@ class APNService(BaseService):
     fmt = '!cH32sH%ds'
 
     def connect(self):
+        """
+        Establishes an encrypted SSL socket connection to the service.
+        After connecting the socket can be written to or read from.
+        """
         return super(APNService, self).connect(self.certificate, self.private_key)
 
     def push_notification_to_devices(self, notification, devices=None):
@@ -91,6 +98,10 @@ class APNService(BaseService):
             self.disconnect()
 
     def _write_message(self, notification, devices):
+        """
+        Writes the message for the supplied devices to
+        the APN Service SSL socket.
+        """
         if not isinstance(notification, Notification):
             raise TypeError('notification should be an instance of ios_notifications.models.Notification')
 
@@ -126,6 +137,9 @@ class APNService(BaseService):
         notification.save()
 
     def pack_message(self, payload, device):
+        """
+        Converts a notification payload into binary form.
+        """
         if len(payload) > 256:
             raise NotificationPayloadSizeExceeded
         if not isinstance(device, Device):
@@ -139,6 +153,9 @@ class APNService(BaseService):
 
 
 class Notification(models.Model):
+    """
+    Represents a notification which can be pushed to an iOS device.
+    """
     service = models.ForeignKey(APNService)
     message = models.CharField(max_length=200)
     badge = models.PositiveIntegerField(default=1, null=True)
@@ -147,6 +164,10 @@ class Notification(models.Model):
     last_sent_at = models.DateTimeField(null=True, blank=True)
 
     def push__all_devices(self):
+        """
+        Pushes this notification to all active devices using the
+        notification's related APN service.
+        """
         self.service.push_notification_to_devices(self)
 
     def __unicode__(self):
@@ -154,6 +175,11 @@ class Notification(models.Model):
 
     @staticmethod
     def is_valid_length(message, badge=None, sound=None):
+        """
+        Determines if a notification payload is a valid length.
+
+        returns bool
+        """
         aps = {'alert': message}
         if badge is not None:
             aps['badge'] = badge
@@ -213,11 +239,14 @@ class FeedbackService(BaseService):
     fmt = '!lh32s'
 
     def connect(self):
+        """
+        Establishes an encrypted socket connection to the feedback service.
+        """
         return super(FeedbackService, self).connect(self.apn_service.certificate, self.apn_service.private_key)
 
     def call(self):
         """
-        Calls the Feedback service
+        Calls the feedback service and deactivates any devices the feedback service mentions.
         """
         if self.connect():
             device_tokens = []
