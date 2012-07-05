@@ -37,7 +37,7 @@ You'll see a form to be able to create a new APN Service.
 
 I am making the assumption that you have already created a private key and certificate.
 If not I suggest you follow one of the online guides to complete this step.
-One such example can be found at http://www.raywenderlich.com/3443/apple-push-notification-services-tutorial-part-12
+One such example can be found [here](http://www.raywenderlich.com/3443/apple-push-notification-services-tutorial-part-12).
 
 The name of the service can be any arbitrary string.
 
@@ -68,18 +68,19 @@ hexadecimal characters (be sure to exclude any `<`, `>` and whitespace character
 Otherwise the django-ios-notifications API provides a REST interface for you to be able to add the device;
 this would normally be done by sending a request from you iOS app.
 
-To register your device you will need to make a POST request from your device and pass the appropriate parameters as part of the URL.
+To register your device you will need to make a POST request from your device and pass the appropriate POST parameters in the request body.
 
-The URL requires you to substitute in the device's 64 character hexadecimal token and the id of the APN Service to associate with this device.
+To create a new device you will need to call the API at http://127.0.0.1:8000/ios-notifications/device/
 
-For example if you wanted to register a device with the token `0fd12510cfe6b0a4a89dc7369d96df956f991e66131dab63398734e8000d0029`
-using an APN Service with the id 10 you would make a POST request to the following location:
+There are two required POST parameters required to complete this operation:
+* token: the device's 64 character hexadecimal token.
+* service: The id in integer format of the APNService instance to be used for this device.
 
-http://127.0.0.1:8000/ios-notifications/register-device/0fd12510cfe6b0a4a89dc7369d96df956f991e66131dab63398734e8000d0029/10/
+If the device already exists, the device's `is_active` attribute will be updated to True. Otherwise the device
+will be created.
 
-You do not need to pass any parameters as part of the request body.
-
-The API will return you a response in JSON format to let you know whether your request was successful or not.
+If successful the API will return the device in serialized JSON format with a status code of 201 if the device was created. If
+the device already existed the response code will be 200.
 
 
 Creating and sending notifications
@@ -122,11 +123,10 @@ The Feedback Service and deactivating devices
 The Feedback Service is used to determine to which devices you should no longer push notifications.
 This is normally the case once a user has uninstalled your app from his or her device.
 
-According to Apple:
+[According to Apple](https://developer.apple.com/library/ios/#documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingWIthAPS/CommunicatingWIthAPS.html#//apple_ref/doc/uid/TP40008194-CH101-SW3):
 
 > APNs monitors providers for their diligence in checking the feedback service and refraining from sending push notifications to nonexistent applications on devices.
 
-(https://developer.apple.com/library/ios/#documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingWIthAPS/CommunicatingWIthAPS.html#//apple_ref/doc/uid/TP40008194-CH101-SW3)
 
 So it is good practice to ensure that you don't push notifications to devices which no longer have your app installed.
 
@@ -152,7 +152,7 @@ The `call_feedback_service` command takes one required argument:
 
 A full example: `./manage.py call_feedback_service --feedback-service=123`
 
-_NOTE:_ You may experience some issues testing the feedback service in a sandbox enviroment.
+__NOTE:__ You may experience some issues testing the feedback service in a sandbox enviroment.
 This occurs when an app was the last push enabled app for that particular APN Service on the device 
 Once the app is removed it tears down the persistent connection to the APN service. If you want to
 test a feedback service, ensure that you have at least one other app on the device installed which
@@ -166,12 +166,12 @@ the next time you attempt to call the feedback service all should go according t
 the device in question has now been deactivated when you view it in the admin interface at
 http://127.0.0.1:8000/admin/ios_notifications/device/
 
-See `Issues with Using the Feedback Service` at http://developer.apple.com/library/ios/#technotes/tn2265/_index.html
-for more details
+See [Issues with Using the Feedback Service](http://developer.apple.com/library/ios/#technotes/tn2265/_index.html
+for more details)
 
 ***
 
-NOTE: This is a work in progress and is far from being production ready.
+__NOTE__: This is a work in progress and is far from being production ready.
 Use at your own risk.
 
 

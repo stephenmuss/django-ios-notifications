@@ -172,6 +172,7 @@ class Device(models.Model):
 
     token = models.CharField(max_length=64, blank=False, null=False)
     is_active = models.BooleanField(default=True)
+    deactivated_at = models.DateTimeField(null=True, blank=True)
     service = models.ForeignKey(APNService)
     users = models.ManyToManyField(User, null=True, blank=True, related_name='ios_devices')
     added_at = models.DateTimeField(auto_now_add=True)
