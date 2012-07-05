@@ -6,6 +6,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from django.core import serializers
 from django.db.models.query import QuerySet
+from django.db import IntegrityError
+from django.contrib.auth.models import User
 
 from ios_notifications.models import Device
 from ios_notifications.forms import DeviceForm
@@ -48,7 +50,7 @@ class BaseResource(object):
         if method in self.allowed_methods:
             if hasattr(self, method.lower()):
                 if method == 'PUT':
-                    request.PUT = QueryDict(request.raw_post_data)
+                    request.PUT = QueryDict(request.raw_post_data).copy()
                 return getattr(self, method.lower())(request, **kwargs)
 
             return HttpResponseNotImplemented()
@@ -105,18 +107,25 @@ class DeviceResource(BaseResource):
         Any attributes to be updated should be supplied as parameters in the request
         body of any HTTP PUT request.
         """
-        device = get_object_or_404(Device, **kwargs)
-        # TODO: Transaction
+        try:
+            device = Device.objects.get(**kwargs)
+        except Device.DoesNotExist:
+            return JSONResponse({'error': 'Device with token %s and service %s does not exist' %
+                                (kwargs['token'], kwargs['service__id'])}, status=400)
+
         if 'users' in request.PUT:
             try:
-                device.users.add(*request.PUT['users'])
-                device.users.remove(*[u.id for u in device.users.exclude(id__in=request.PUT['users'])])
-            except ValueError:
-                pass
+                user_ids = request.PUT.getlist('users')
+                device.users.remove(*[u.id for u in device.users.all()])
+                device.users.add(*User.objects.filter(id__in=user_ids))
+            except (ValueError, IntegrityError) as e:
+                return JSONResponse({'error': e.message}, status=400)
             del request.PUT['users']
+
         for key, value in request.PUT.items():
             setattr(device, key, value)
         device.save()
+
         return JSONResponse(device)
 
 
