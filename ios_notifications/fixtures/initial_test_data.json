@@ -1,0 +1,48 @@
+[
+    {
+        "pk": 1, 
+        "model": "ios_notifications.apnservice", 
+        "fields": {
+            "private_key": "-----BEGIN RSA PRIVATE KEY-----\r\n-----END RSA PRIVATE KEY-----", 
+            "hostname": "gateway.sandbox.push.apple.com", 
+            "name": "sandbox", 
+            "certificate": "-----BEGIN CERTIFICATE-----\r\n-----END CERTIFICATE-----"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "ios_notifications.notification", 
+        "fields": {
+            "sound": "default", 
+            "service": 1, 
+            "created_at": "2012-07-05T13:21:28.802Z", 
+            "last_sent_at": null, 
+            "message": "This is a push notification from Django iOS Notifications!", 
+            "badge": 1
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "ios_notifications.device", 
+        "fields": {
+            "deactivated_at": null, 
+            "users": [], 
+            "service": 1, 
+            "last_notified_at": null, 
+            "is_active": true, 
+            "added_at": "2012-07-05T13:19:54.410Z", 
+            "platform": null, 
+            "token": "0fd12510cfe6b0a4a89dc7369d96df956f991e66131dab63398734e8000d0029", 
+            "display": null
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "ios_notifications.feedbackservice", 
+        "fields": {
+            "hostname": "feedback.sandbox.push.apple.com", 
+            "apn_service": 1, 
+            "name": "feedback-sandbox"
+        }
+    }
+]
