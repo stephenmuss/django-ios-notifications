@@ -10,10 +10,6 @@ from ios_notifications.models import APNService, Device
 from ios_notifications.api import JSONResponse
 
 
-class Request:
-    pass
-
-
 class APITest(TestCase):
     fixtures = ['initial_test_data.json']
 
@@ -59,7 +55,8 @@ class APITest(TestCase):
     def test_update_device(self):
         kwargs = {'token': self.device.token, 'service__id': self.device.service.id}
         url = reverse('ios-notifications-device', kwargs=kwargs)
-        resp = self.client.put(url, 'users=%d&platform=iPhone' % self.user.id, content_type='')
+        resp = self.client.put(url, 'users=%d&platform=iPhone' % self.user.id,
+                               content_type='application/x-www-form-urlencode')
         self.assertEqual(resp.status_code, 200)
         self.assertTrue(isinstance(resp, JSONResponse))
         device_json = json.loads(resp.content)
