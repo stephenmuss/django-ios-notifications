@@ -109,17 +109,7 @@ class APNService(BaseService):
             if not self.connect():
                 return
 
-        aps = {'alert': notification.message}
-        if notification.badge is not None:
-            aps['badge'] = notification.badge
-        if notification.sound is not None:
-            aps['sound'] = notification.sound
-
-        message = {'aps': aps}
-        payload = json.dumps(message, separators=(',', ':'))
-
-        if len(payload) > 256:
-            raise NotificationPayloadSizeExceeded
+        payload = self.get_payload(notification)
 
         for device in devices:
             try:
@@ -133,8 +123,27 @@ class APNService(BaseService):
                 return self._write_message(notification, devices[i:]) if self.connect() else None
         if isinstance(devices, models.query.QuerySet):
             devices.update(last_notified_at=datetime.datetime.now())
+        else:
+            for device in devices:
+                device.last_notified_at = datetime.datetime.now()
+                device.save()
         notification.last_sent_at = datetime.datetime.now()
         notification.save()
+
+    def get_payload(self, notification):
+        aps = {'alert': notification.message}
+        if notification.badge is not None:
+            aps['badge'] = notification.badge
+        if notification.sound is not None:
+            aps['sound'] = notification.sound
+
+        message = {'aps': aps}
+        payload = json.dumps(message, separators=(',', ':'))
+
+        if len(payload) > 256:
+            raise NotificationPayloadSizeExceeded
+
+        return payload
 
     def pack_message(self, payload, device):
         """
