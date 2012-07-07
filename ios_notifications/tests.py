@@ -116,3 +116,12 @@ class APITest(TestCase):
         self.assertEqual(device_json.get('pk'), self.device.id)
         self.assertTrue(self.user in self.device.users.all())
 
+
+class NotificationTest(TestCase):
+    def test_invalid_length(self):
+        long_message = '.' * 260
+        self.assertFalse(Notification.is_valid_length(long_message))
+
+    def test_valid_length(self):
+        msg = 'This is the message'
+        self.assertTrue(Notification.is_valid_length(msg))
