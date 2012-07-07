@@ -11,24 +11,20 @@ from django.contrib.auth.models import User
 from django.utils import simplejson as json
 from django.http import HttpResponseNotAllowed
 
-import OpenSSL
-
 from ios_notifications.models import APNService, Device, Notification, NotificationPayloadSizeExceeded
 from ios_notifications.api import JSONResponse
 from ios_notifications.utils import generate_cert_and_pkey
 
 TOKEN = '0fd12510cfe6b0a4a89dc7369c96df956f991e66131dab63398734e8000d0029'
+test_server_path = os.path.join(os.path.dirname(__file__), 'test_server.py')
 
 
 class APNServiceTest(TestCase):
     def setUp(self):
-        test_server_path = os.path.join(os.path.dirname(__file__), 'test_server.py')
         self.test_server_proc = subprocess.Popen((sys.executable, test_server_path), stdout=subprocess.PIPE)
-        time.sleep(2)  # Wait for test server to be started
+        time.sleep(1.5)  # Wait for test server to be started
 
         cert, key = generate_cert_and_pkey()
-        cert = OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, cert)
-        key = OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, key)
         self.service = APNService.objects.create(name='test-service', hostname='127.0.0.1',
                                                  certificate=cert, private_key=key)
 
@@ -118,10 +114,27 @@ class APITest(TestCase):
 
 
 class NotificationTest(TestCase):
+    def setUp(self):
+        self.test_server_proc = subprocess.Popen((sys.executable, test_server_path), stdout=subprocess.PIPE)
+        time.sleep(1.5)
+        cert, key = generate_cert_and_pkey()
+        self.service = APNService.objects.create(name='service', hostname='127.0.0.1',
+                                                 private_key=key, certificate=cert)
+        self.service.PORT = 2195  # For ease of use simply change port to default port in test_server
+
+        self.notification = Notification.objects.create(service=self.service, message='Test message')
+
     def test_invalid_length(self):
         long_message = '.' * 260
         self.assertFalse(Notification.is_valid_length(long_message))
 
     def test_valid_length(self):
-        msg = 'This is the message'
-        self.assertTrue(Notification.is_valid_length(msg))
+        self.assertTrue(Notification.is_valid_length(self.notification.message))
+
+    def test_push_to_all_devices(self):
+        self.assertIsNone(self.notification.last_sent_at)
+        self.notification.push_to_all_devices()
+        self.assertIsNotNone(self.notification.last_sent_at)
+
+    def tearDown(self):
+        self.test_server_proc.kill()

@@ -1,12 +1,8 @@
 '''
-SimpleSecureHTTPServer.py - simple HTTP server supporting SSL.
-
-- replace fpem with the location of your .pem server file.
-- the default port is 443.
-
-usage: python SimpleSecureHTTPServer.py
+Used for testing ssl connections
 '''
 import socket
+
 from utils import generate_cert_and_pkey
 from SocketServer import BaseServer
 from BaseHTTPServer import HTTPServer
@@ -18,7 +14,7 @@ class SecureHTTPServer(HTTPServer):
     def __init__(self, server_address, HandlerClass):
         BaseServer.__init__(self, server_address, HandlerClass)
         ctx = SSL.Context(SSL.SSLv23_METHOD)
-        cert, key = generate_cert_and_pkey()
+        cert, key = generate_cert_and_pkey(False)
         ctx.use_privatekey(key)
         ctx.use_certificate(cert)
         self.socket = SSL.Connection(ctx, socket.socket(self.address_family,

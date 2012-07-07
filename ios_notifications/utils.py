@@ -1,7 +1,7 @@
 import OpenSSL
 
 
-def generate_cert_and_pkey():
+def generate_cert_and_pkey(as_string=True):
     key = OpenSSL.crypto.PKey()
     key.generate_key(OpenSSL.crypto.TYPE_RSA, 2048)
     cert = OpenSSL.crypto.X509()
@@ -13,4 +13,7 @@ def generate_cert_and_pkey():
     cert.set_issuer(cert.get_subject())
     cert.set_pubkey(key)
     cert.sign(key, 'sha1')
+    if as_string:
+        cert = OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, cert)
+        key = OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, key)
     return cert, key
