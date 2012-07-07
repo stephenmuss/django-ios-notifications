@@ -172,7 +172,7 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     last_sent_at = models.DateTimeField(null=True, blank=True)
 
-    def push__all_devices(self):
+    def push_to_all_devices(self):
         """
         Pushes this notification to all active devices using the
         notification's related APN service.
