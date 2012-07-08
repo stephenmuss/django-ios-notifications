@@ -53,6 +53,9 @@ For the certificate and private key fields paste in your certificate and key inc
 -----END RSA PRIVATE KEY-----
 ```
 
+If your private key requires a passphrase be sure to enter it in to the `passphrase` field.
+Otherwise this field can be left blank.
+
 After this you are ready to save the APN Service.
 
 
@@ -202,9 +205,5 @@ See [Issues with Using the Feedback Service](http://developer.apple.com/library/
 for more details)
 
 ***
-
-__NOTE__: This is a work in progress and is far from being production ready.
-Use at your own risk.
-
 
 This source code is released under a New BSD License. See the LICENSE file for full details.
