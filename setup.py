@@ -24,7 +24,8 @@ setup(
     ],
     install_requires=[
         'Django>=1.2',
-        'pyOpenSSL>=0.13'
+        'pyOpenSSL>=0.13',
+        'django-fields>=0.1.2'
     ],
     zip_safe=False
 )

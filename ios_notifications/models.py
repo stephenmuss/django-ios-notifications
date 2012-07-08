@@ -7,6 +7,7 @@ import datetime
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import simplejson as json
+from django_fields.fields import EncryptedCharField
 
 import OpenSSL
 
@@ -28,7 +29,7 @@ class BaseService(models.Model):
     PORT = 0  # Should be overriden by subclass
     connection = None
 
-    def connect(self, certificate, private_key):
+    def connect(self, certificate, private_key, passphrase=None):
         """
         Establishes an encrypted SSL socket connection to the service.
         After connecting the socket can be written to or read from.
@@ -38,7 +39,10 @@ class BaseService(models.Model):
         # Therefore pyOpenSSL which lets us do this is a dependancy.
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, certificate)
-        pkey = OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, private_key)
+        args = [OpenSSL.crypto.FILETYPE_PEM, private_key]
+        if passphrase is not None:
+            args.append(str(passphrase))
+        pkey = OpenSSL.crypto.load_privatekey(*args)
         context = OpenSSL.SSL.Context(OpenSSL.SSL.SSLv3_METHOD)
         context.use_certificate(cert)
         context.use_privatekey(pkey)
@@ -74,6 +78,7 @@ class APNService(BaseService):
     """
     certificate = models.TextField()
     private_key = models.TextField()
+    passphrase = EncryptedCharField(null=True, blank=True, help_text='Passphrase for the private key')
 
     PORT = 2195
     fmt = '!cH32sH%ds'
@@ -83,7 +88,7 @@ class APNService(BaseService):
         Establishes an encrypted SSL socket connection to the service.
         After connecting the socket can be written to or read from.
         """
-        return super(APNService, self).connect(self.certificate, self.private_key)
+        return super(APNService, self).connect(self.certificate, self.private_key, self.passphrase)
 
     def push_notification_to_devices(self, notification, devices=None):
         """

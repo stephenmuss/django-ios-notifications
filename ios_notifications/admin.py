@@ -6,6 +6,7 @@ from ios_notifications.models import Device, Notification, APNService, FeedbackS
 from django.conf.urls.defaults import patterns, url
 from django.template.response import TemplateResponse
 from django.shortcuts import get_object_or_404
+from django.forms.widgets import PasswordInput
 
 
 class APNServiceAdminForm(forms.ModelForm):
@@ -16,6 +17,8 @@ class APNServiceAdminForm(forms.ModelForm):
     END_CERT = '-----END CERTIFICATE-----'
     START_KEY = '-----BEGIN RSA PRIVATE KEY-----'
     END_KEY = '-----END RSA PRIVATE KEY-----'
+
+    passphrase = forms.CharField(widget=PasswordInput(render_value=True), required=False)
 
     def clean_certificate(self):
         if not self.START_CERT or not self.END_CERT in self.cleaned_data['certificate']:
