@@ -13,11 +13,18 @@ import OpenSSL
 
 
 class NotificationPayloadSizeExceeded(Exception):
-    message = 'The notification maximum payload size of 256 bytes was exceeded'
+    def __init__(self, message='The notification maximum payload size of 256 bytes was exceeded'):
+        super(NotificationPayloadSizeExceeded, self).__init__(message)
 
 
 class NotConnectedException(Exception):
-    message = 'You must open a socket connection before writing a message'
+    def __init__(self, message='You must open a socket connection before writing a message'):
+        super(NotConnectedException, self).__init__(message)
+
+
+class InvalidPassPhrase(Exception):
+    def __init__(self, message='The passphrase for the private key appears to be invalid'):
+        super(InvalidPassPhrase, self).__init__(message)
 
 
 class BaseService(models.Model):
@@ -42,7 +49,10 @@ class BaseService(models.Model):
         args = [OpenSSL.crypto.FILETYPE_PEM, private_key]
         if passphrase is not None:
             args.append(str(passphrase))
-        pkey = OpenSSL.crypto.load_privatekey(*args)
+        try:
+            pkey = OpenSSL.crypto.load_privatekey(*args)
+        except OpenSSL.crypto.Error:
+            raise InvalidPassPhrase
         context = OpenSSL.SSL.Context(OpenSSL.SSL.SSLv3_METHOD)
         context.use_certificate(cert)
         context.use_privatekey(pkey)

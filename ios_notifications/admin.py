@@ -1,39 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import admin
-from django import forms
 from ios_notifications.models import Device, Notification, APNService, FeedbackService
+from ios_notifications.forms import APNServiceForm
 from django.conf.urls.defaults import patterns, url
 from django.template.response import TemplateResponse
 from django.shortcuts import get_object_or_404
-from django.forms.widgets import PasswordInput
-
-
-class APNServiceAdminForm(forms.ModelForm):
-    class Meta:
-        model = APNService
-
-    START_CERT = '-----BEGIN CERTIFICATE-----'
-    END_CERT = '-----END CERTIFICATE-----'
-    START_KEY = '-----BEGIN RSA PRIVATE KEY-----'
-    END_KEY = '-----END RSA PRIVATE KEY-----'
-
-    passphrase = forms.CharField(widget=PasswordInput(render_value=True), required=False)
-
-    def clean_certificate(self):
-        if not self.START_CERT or not self.END_CERT in self.cleaned_data['certificate']:
-            raise forms.ValidationError('Invalid certificate')
-        return self.cleaned_data['certificate']
-
-    def clean_private_key(self):
-        if not self.START_KEY or not self.END_KEY in self.cleaned_data['private_key']:
-            raise forms.ValidationError('Invalid private key')
-        return self.cleaned_data['private_key']
 
 
 class APNServiceAdmin(admin.ModelAdmin):
     list_display = ('name', 'hostname')
-    form = APNServiceAdminForm
+    form = APNServiceForm
 
 
 class DeviceAdmin(admin.ModelAdmin):
