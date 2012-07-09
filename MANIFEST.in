@@ -1,4 +1,5 @@
 include README.md
 include LICENSE
+include ios_notifications/test.pem
 recursive-include ios_notifications/templates *
 recursive-include ios_notifications/management *
