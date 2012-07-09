@@ -1,41 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from django.http import HttpResponse, HttpResponseNotAllowed, QueryDict
-from django.utils import simplejson as json
+from django.http import HttpResponseNotAllowed, QueryDict
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
-from django.core import serializers
-from django.db.models.query import QuerySet
 from django.db import IntegrityError
 from django.contrib.auth.models import User
+from django.utils.decorators import method_decorator
 
 from ios_notifications.models import Device
 from ios_notifications.forms import DeviceForm
-
-
-class HttpResponseNotImplemented(HttpResponse):
-    status_code = 501
-
-
-class JSONResponse(HttpResponse):
-    """
-    A subclass of django.http.HttpResponse which serializes its content
-    and returns a response with an application/json mimetype.
-    """
-    def __init__(self, content=None, content_type=None, status=None, mimetype='application/json'):
-        content = self.serialize(content) if content is not None else ''
-        super(JSONResponse, self).__init__(content, content_type, status, mimetype)
-
-    def serialize(self, obj):
-        json_s = serializers.get_serializer('json')()
-        if isinstance(obj, QuerySet):
-            return json_s.serialize(obj)
-        elif isinstance(obj, dict):
-            return json.dumps(obj)
-
-        serialized_list = json_s.serialize([obj])
-        m = json.loads(serialized_list)[0]
-        return json.dumps(m)
+from ios_notifications.decorators import api_authentication_required
+from ios_notifications.http import HttpResponseNotImplemented, JSONResponse
 
 
 class BaseResource(object):
@@ -44,6 +19,7 @@ class BaseResource(object):
     """
     allowed_methods = ('GET', 'POST', 'PUT', 'DELETE')
 
+    @method_decorator(api_authentication_required)
     @csrf_exempt
     def route(self, request, **kwargs):
         method = request.method
