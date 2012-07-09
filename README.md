@@ -152,6 +152,43 @@ neither play a sound or update the badge of your app's icon when receiving the n
 A full example: `./manage.py push_ios_notification --message='This is a push notification from Django iOS Notifications!' --service=123 --badge=1 --sound=default`.
 
 
+API Authentication
+-----------------
+
+At present the REST API supports a few different modes of authentication.
+
+If you plan to use the API then you need to specify `IOS_NOTIFICATIONS_AUTHENTICATION` in your settings.py file.
+
+The value of `IOS_NOTIFICATIONS_AUTHENTICATION` must be one of the following strings `AuthBasic`, `AuthBasicIsStaff` or `AuthNone`.
+
+### `AuthNone`
+
+This is the setting to use if you don't care about protecting the API. Any request will be allowed to be processed by the API.
+This is the easiest to get started with but not really recommended.
+
+
+### `AuthBasic`
+
+This will secure your API with basic access authentication. This means any request to the API will need to include an `Authorization` header.
+This will do a check to see whether a user exists in your database with the supplied credentials. The user should be an instance of `django.contrib.auth.models.User`.
+The value of the header will be the word `Basic` followed by a base64 encoded string of the user's username and password joined by a colon `:`.
+For example, if you have a user with the username `Aladdin` and password `open sesame` you would need to base64 encode the string `Aladdin:open sesame`.
+The resulting header should looks as follows `Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==`. It is highly recommended that you only send requests
+over SSL. Otherwise the user credentials will be sent unencrypted in plain text.
+
+See [Basic access authentication](http://en.wikipedia.org/wiki/Basic_access_authentication) for more details
+
+
+### `AuthBasicIsStaff`
+
+This is the same as `AuthBasic` except that the request will only be allowed if the user is a staff user.
+
+
+### `AuthOAuth`
+
+OAuth authentication will be supported in future versions.
+
+
 The Feedback Service and deactivating devices
 -----------------
 
