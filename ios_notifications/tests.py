@@ -13,6 +13,7 @@ from django.http import HttpResponseNotAllowed
 from ios_notifications.models import APNService, Device, Notification, NotificationPayloadSizeExceeded
 from ios_notifications.api import JSONResponse
 from ios_notifications.utils import generate_cert_and_pkey
+from ios_notifications.forms import APNServiceForm
 
 TOKEN = '0fd12510cfe6b0a4a89dc7369c96df956f991e66131dab63398734e8000d0029'
 TEST_PEM = os.path.abspath(os.path.join(os.path.dirname(__file__), 'test.pem'))
@@ -56,6 +57,18 @@ class APNServiceTest(TestCase):
         self.service.push_notification_to_devices(self.notification, [self.device])
         self.assertIsNotNone(self.notification.last_sent_at)
         self.assertIsNotNone(self.device.last_notified_at)
+
+    def test_create_with_passphrase(self):
+        cert, key = generate_cert_and_pkey(as_string=True, passphrase='pass')
+        form = APNServiceForm({'name': 'test', 'hostname': 'localhost', 'certificate': cert, 'private_key': key, 'passphrase': 'pass'})
+        self.assertTrue(form.is_valid())
+
+    def test_create_with_invalid_passphrase(self):
+        cert, key = generate_cert_and_pkey(as_string=True, passphrase='correct')
+        form = APNServiceForm({'name': 'test', 'hostname': 'localhost', 'certificate': cert, 'private_key': key, 'passphrase': 'incorrect'})
+        self.assertFalse(form.is_valid())
+        self.assertTrue('passphrase' in form.errors)
+
 
     def tearDown(self):
         self.test_server_proc.kill()

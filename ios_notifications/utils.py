@@ -1,7 +1,7 @@
 import OpenSSL
 
 
-def generate_cert_and_pkey(as_string=True):
+def generate_cert_and_pkey(as_string=True, passphrase=None):
     key = OpenSSL.crypto.PKey()
     key.generate_key(OpenSSL.crypto.TYPE_RSA, 2048)
     cert = OpenSSL.crypto.X509()
@@ -14,6 +14,9 @@ def generate_cert_and_pkey(as_string=True):
     cert.set_pubkey(key)
     cert.sign(key, 'sha1')
     if as_string:
+        args = [OpenSSL.crypto.FILETYPE_PEM, key]
+        if passphrase is not None:
+            args += ['DES3', passphrase]
         cert = OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, cert)
-        key = OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, key)
+        key = OpenSSL.crypto.dump_privatekey(*args)
     return cert, key
