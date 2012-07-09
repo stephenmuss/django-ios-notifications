@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-import os
-import sys
 import subprocess
 import time
 import struct
+import os
 
 from django.test import TestCase
 from django.core.urlresolvers import reverse
@@ -16,13 +15,15 @@ from ios_notifications.api import JSONResponse
 from ios_notifications.utils import generate_cert_and_pkey
 
 TOKEN = '0fd12510cfe6b0a4a89dc7369c96df956f991e66131dab63398734e8000d0029'
-test_server_path = os.path.join(os.path.dirname(__file__), 'test_server.py')
+TEST_PEM = os.path.abspath(os.path.join(os.path.dirname(__file__), 'test.pem'))
+
+SSL_SERVER_COMMAND = ('openssl', 's_server', '-accept', '2195', '-cert', TEST_PEM)
 
 
 class APNServiceTest(TestCase):
     def setUp(self):
-        self.test_server_proc = subprocess.Popen((sys.executable, test_server_path), stdout=subprocess.PIPE)
-        time.sleep(1.5)  # Wait for test server to be started
+        self.test_server_proc = subprocess.Popen(SSL_SERVER_COMMAND, stdout=subprocess.PIPE)
+        time.sleep(0.5)  # Wait for test server to be started
 
         cert, key = generate_cert_and_pkey()
         self.service = APNService.objects.create(name='test-service', hostname='127.0.0.1',
@@ -115,8 +116,8 @@ class APITest(TestCase):
 
 class NotificationTest(TestCase):
     def setUp(self):
-        self.test_server_proc = subprocess.Popen((sys.executable, test_server_path), stdout=subprocess.PIPE)
-        time.sleep(1.5)
+        self.test_server_proc = subprocess.Popen(SSL_SERVER_COMMAND, stdout=subprocess.PIPE)
+        time.sleep(0.5)
         cert, key = generate_cert_and_pkey()
         self.service = APNService.objects.create(name='service', hostname='127.0.0.1',
                                                  private_key=key, certificate=cert)
