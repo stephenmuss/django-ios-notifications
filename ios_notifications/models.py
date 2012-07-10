@@ -8,6 +8,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import simplejson as json
 from django_fields.fields import EncryptedCharField
+from django.conf import settings
 
 import OpenSSL
 
@@ -63,7 +64,8 @@ class BaseService(models.Model):
             self.connection.do_handshake()
             return True
         except Exception as e:
-            print e, e.__class__
+            if getattr(settings, 'DEBUG', False):
+                print e, e.__class__
         return False
 
     def disconnect(self):
