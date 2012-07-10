@@ -11,6 +11,14 @@ You can install with pip: `pip install django-ios-notifications`.
 
 You then need to add `ios_notifications` to `INSTALLED_APPS` in your settings file.
 
+The minimum Django version required is 1.3. There are also two other dependencies:
+
+* `pyOpenSSL >= 0.10`
+* `django-fields >= 0.1.2`
+
+
+After installation, you then need to add `ios_notifications` to `INSTALLED_APPS` in your settings file.
+
 If you want to use the API for registering devices you will also need to make the appropriate changes to your urls file:
 
 ```python
