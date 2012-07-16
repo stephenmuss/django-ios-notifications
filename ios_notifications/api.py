@@ -67,7 +67,9 @@ class DeviceResource(BaseResource):
             return JSONResponse(device)
         form = DeviceForm(request.POST)
         if form.is_valid():
-            device = form.save()
+            device = form.save(commit=False)
+            device.is_active = True
+            device.save()
             return JSONResponse(device, status=201)
         return JSONResponse(form.errors, status=400)
 
