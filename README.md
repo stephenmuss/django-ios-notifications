@@ -11,7 +11,8 @@ You can install with pip: `pip install django-ios-notifications`.
 
 You then need to add `ios_notifications` to `INSTALLED_APPS` in your settings file.
 
-The minimum Django version required is 1.3. There are also two other dependencies:
+The minimum Python version supported is Python 2.6 while the minimum Django version required is 1.3.
+There are also two other hard dependencies:
 
 * `pyOpenSSL >= 0.10`
 * `django-fields >= 0.1.2`
