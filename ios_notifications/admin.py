@@ -15,7 +15,7 @@ class APNServiceAdmin(admin.ModelAdmin):
 
 class DeviceAdmin(admin.ModelAdmin):
     fields = ('token', 'is_active', 'service')
-    list_display = ('token', 'is_active', 'service', 'last_notified_at', 'platform', 'display')
+    list_display = ('token', 'is_active', 'service', 'last_notified_at', 'platform', 'display', 'os_version')
 
 
 class NotificationAdmin(admin.ModelAdmin):

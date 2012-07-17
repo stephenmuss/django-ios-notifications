@@ -229,6 +229,7 @@ class Device(models.Model):
     last_notified_at = models.DateTimeField(null=True, blank=True)
     platform = models.CharField(max_length=30, blank=True, null=True)
     display = models.CharField(max_length=30, blank=True, null=True)
+    os_version = models.CharField(max_length=20, blank=True, null=True)
 
     def push_notification(self, notification):
         """

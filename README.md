@@ -121,6 +121,8 @@ should be PUT. You can provide any of the following PUT parameters to update the
 * `users`: A list of user (django.contrib.auth.models.User) ids in integer formate associated with the device.
 * `platform`: A string describing the device's platform. Allowed options are 'iPhone', 'iPad' and 'iPod'.
 * `display`: A string describing the device's display (max 30 characters). e.g. '480x320'.
+* `os_version`: A string describing the device's OS Version (max 20 characters). e.g. 'iPhone OS 5.1.1' which would be
+the resulting string from `[NSString stringWithFormat:@"%@ %@", [[UIDevice currentDevice] systemName], [[UIDevice currentDevice] systemVersion]]`.
 
 Although technically permitted, updating any of the device's other attributes through the API is not recommended.
 
