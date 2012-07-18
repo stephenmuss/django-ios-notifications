@@ -33,7 +33,7 @@ class BaseService(models.Model):
     A base service class intended to be subclassed.
     """
     name = models.CharField(max_length=255)
-    hostname = models.CharField(max_length=255, unique=True)
+    hostname = models.CharField(max_length=255)
     PORT = 0  # Should be overriden by subclass
     connection = None
 
@@ -177,6 +177,9 @@ class APNService(BaseService):
     def __unicode__(self):
         return u'APNService %s' % self.name
 
+    class Meta:
+        unique_together = ('name', 'hostname')
+
 
 class Notification(models.Model):
     """
@@ -291,3 +294,6 @@ class FeedbackService(BaseService):
 
     def __unicode__(self):
         return u'FeedbackService %s' % self.name
+
+    class Meta:
+        unique_together = ('name', 'hostname')
