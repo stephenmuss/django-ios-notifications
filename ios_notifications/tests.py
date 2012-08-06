@@ -3,6 +3,7 @@ import subprocess
 import time
 import struct
 import os
+import datetime
 
 from django.test import TestCase
 from django.core.urlresolvers import reverse
@@ -10,6 +11,7 @@ from django.contrib.auth.models import User
 from django.utils import simplejson as json
 from django.http import HttpResponseNotAllowed
 from django.conf import settings
+from django.core import management
 
 from ios_notifications.models import APNService, Device, Notification, NotificationPayloadSizeExceeded
 from ios_notifications.http import JSONResponse
@@ -243,3 +245,28 @@ class NotificationTest(TestCase):
 
     def tearDown(self):
         self.test_server_proc.kill()
+
+
+class ManagementCommandPushNotificationTest(TestCase):
+    def setUp(self):
+        self.started_at = datetime.datetime.now()
+        self.test_server_proc = subprocess.Popen(SSL_SERVER_COMMAND, stdout=subprocess.PIPE)
+        time.sleep(0.5)
+        cert, key = generate_cert_and_pkey()
+        self.service = APNService.objects.create(name='service', hostname='127.0.0.1',
+                                                 private_key=key, certificate=cert)
+        self.service.PORT = 2195
+        self.device = Device.objects.create(token=TOKEN, service=self.service)
+
+    def test_call_push_ios_notification_command(self):
+        msg = 'some message'
+        management.call_command('push_ios_notification', **{'message': msg, 'service': self.service.id, 'verbosity': 0})
+        self.assertTrue(Notification.objects.filter(message=msg, last_sent_at__gt=self.started_at).exists())
+        self.assertTrue(self.device in Device.objects.filter(last_notified_at__gt=self.started_at))
+
+    def tearDown(self):
+        self.test_server_proc.kill()
+
+
+class ManagementCommandCallFeedbackService(TestCase):
+    pass
