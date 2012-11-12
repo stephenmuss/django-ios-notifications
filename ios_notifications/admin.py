@@ -15,18 +15,22 @@ class APNServiceAdmin(admin.ModelAdmin):
 
 class DeviceAdmin(admin.ModelAdmin):
     fields = ('token', 'is_active', 'service')
-    list_display = ('token', 'is_active', 'service', 'last_notified_at', 'platform', 'display', 'os_version')
+    list_display = ('token', 'is_active', 'service', 'last_notified_at', 'platform', 'display', 'os_version', 'added_at', 'deactivated_at')
+    list_filter = ('is_active', 'last_notified_at', 'added_at', 'deactivated_at')
+    search_fields = ('token', 'platform')
 
 
 class NotificationAdmin(admin.ModelAdmin):
     exclude = ('last_sent_at',)
     list_display = ('message', 'badge', 'sound', 'created_at', 'last_sent_at')
+    list_filter = ('created_at', 'last_sent_at')
+    search_fields = ('message', )
 
     def get_urls(self):
         urls = super(NotificationAdmin, self).get_urls()
         notification_urls = patterns('',
-            url(r'^(?P<id>\d+)/push-notification/$', self.admin_site.admin_view(self.admin_push_notification),
-            name='admin_push_notification'),)
+                                     url(r'^(?P<id>\d+)/push-notification/$', self.admin_site.admin_view(self.admin_push_notification),
+                                     name='admin_push_notification'),)
         return notification_urls + urls
 
     def admin_push_notification(self, request, **kwargs):
