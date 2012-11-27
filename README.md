@@ -195,11 +195,6 @@ See [Basic access authentication](http://en.wikipedia.org/wiki/Basic_access_auth
 This is the same as `AuthBasic` except that the request will only be allowed if the user is a staff user.
 
 
-### `AuthOAuth`
-
-OAuth authentication will be supported in future versions.
-
-
 The Feedback Service and deactivating devices
 -----------------
 
