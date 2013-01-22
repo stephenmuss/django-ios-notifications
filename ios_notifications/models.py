@@ -155,6 +155,10 @@ class APNService(BaseService):
             aps['sound'] = notification.sound
 
         message = {'aps': aps}
+
+        if notification.extra is not None:
+            message.update(notification.extra)
+
         payload = json.dumps(message, separators=(',', ':'))
 
         if len(payload) > 256:
@@ -192,6 +196,22 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     last_sent_at = models.DateTimeField(null=True, blank=True)
 
+    @property
+    def extra(self):
+        """
+        The extra property is used to specify custom payload values
+        outside the Apple-reserved aps namespace
+        http://developer.apple.com/library/mac/#documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/ApplePushService/ApplePushService.html#//apple_ref/doc/uid/TP40008194-CH100-SW1
+        """
+        return getattr(self, '_extra', None)
+
+    @extra.setter
+    def extra(self, value):
+        if not isinstance(value, dict):
+            raise TypeError('must be a valid Python dictionary')
+        json.dumps(value)  # Raises a TypeError if can't be serialized
+        self._extra = value
+
     def push_to_all_devices(self):
         """
         Pushes this notification to all active devices using the
@@ -203,7 +223,7 @@ class Notification(models.Model):
         return u'Notification: %s' % self.message
 
     @staticmethod
-    def is_valid_length(message, badge=None, sound=None):
+    def is_valid_length(message, badge=None, sound=None, extra=None):
         """
         Determines if a notification payload is a valid length.
 
@@ -215,6 +235,8 @@ class Notification(models.Model):
         if sound is not None:
             aps['sound'] = sound
         message = {'aps': aps}
+        if extra is not None:
+            message.update(extra)
         payload = json.dumps(message, separators=(',', ':'))
         return len(payload) <= 256
 
