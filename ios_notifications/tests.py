@@ -13,10 +13,10 @@ from django.http import HttpResponseNotAllowed
 from django.conf import settings
 from django.core import management
 
-from ios_notifications.models import APNService, Device, Notification, NotificationPayloadSizeExceeded
-from ios_notifications.http import JSONResponse
-from ios_notifications.utils import generate_cert_and_pkey
-from ios_notifications.forms import APNServiceForm
+from .models import APNService, Device, Notification, NotificationPayloadSizeExceeded
+from .http import JSONResponse
+from .utils import generate_cert_and_pkey
+from .forms import APNServiceForm
 
 TOKEN = '0fd12510cfe6b0a4a89dc7369c96df956f991e66131dab63398734e8000d0029'
 TEST_PEM = os.path.abspath(os.path.join(os.path.dirname(__file__), 'test.pem'))

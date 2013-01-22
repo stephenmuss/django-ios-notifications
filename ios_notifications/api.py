@@ -7,10 +7,10 @@ from django.db import IntegrityError
 from django.contrib.auth.models import User
 from django.utils.decorators import method_decorator
 
-from ios_notifications.models import Device
-from ios_notifications.forms import DeviceForm
-from ios_notifications.decorators import api_authentication_required
-from ios_notifications.http import HttpResponseNotImplemented, JSONResponse
+from .models import Device
+from .forms import DeviceForm
+from .decorators import api_authentication_required
+from .http import HttpResponseNotImplemented, JSONResponse
 
 
 class BaseResource(object):

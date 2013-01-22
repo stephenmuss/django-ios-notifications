@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import admin
-from ios_notifications.models import Device, Notification, APNService, FeedbackService
-from ios_notifications.forms import APNServiceForm
 from django.conf.urls.defaults import patterns, url
 from django.template.response import TemplateResponse
 from django.shortcuts import get_object_or_404
+
+from .models import Device, Notification, APNService, FeedbackService
+from .forms import APNServiceForm
 
 
 class APNServiceAdmin(admin.ModelAdmin):

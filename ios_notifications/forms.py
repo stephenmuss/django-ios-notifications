@@ -4,7 +4,7 @@ from django import forms
 from django.forms.widgets import PasswordInput
 
 import OpenSSL
-from ios_notifications.models import Device, APNService
+from .models import Device, APNService
 
 
 class DeviceForm(forms.ModelForm):
@@ -32,9 +32,9 @@ class APNServiceForm(forms.ModelForm):
 
     def clean_private_key(self):
         has_start_phrase = self.START_KEY in self.cleaned_data['private_key'] \
-                or self.START_ENCRYPTED_KEY in self.cleaned_data['private_key']
+            or self.START_ENCRYPTED_KEY in self.cleaned_data['private_key']
         has_end_phrase = self.END_KEY in self.cleaned_data['private_key'] \
-                or self.END_ENCRYPTED_KEY in self.cleaned_data['private_key']
+            or self.END_ENCRYPTED_KEY in self.cleaned_data['private_key']
         if not has_start_phrase or not has_end_phrase:
             raise forms.ValidationError('Invalid private key')
         return self.cleaned_data['private_key']

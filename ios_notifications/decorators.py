@@ -1,7 +1,9 @@
-from django.contrib.auth import authenticate
-from ios_notifications.http import JSONResponse
-from django.conf import settings
 import binascii
+
+from django.contrib.auth import authenticate
+from django.conf import settings
+
+from .http import JSONResponse
 
 
 class InvalidAuthenticationType(Exception):
