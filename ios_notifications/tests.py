@@ -231,12 +231,13 @@ class NotificationTest(TestCase):
 
         self.notification = Notification.objects.create(service=self.service, message='Test message')
 
-    def test_invalid_length(self):
-        long_message = '.' * 260
-        self.assertFalse(Notification.is_valid_length(long_message))
-
     def test_valid_length(self):
-        self.assertTrue(Notification.is_valid_length(self.notification.message))
+        self.notification.message = 'test message'
+        self.assertTrue(self.notification.is_valid_length())
+
+    def test_invalid_length(self):
+        self.notification.message = '.' * 260
+        self.assertFalse(self.notification.is_valid_length())
 
     def test_push_to_all_devices(self):
         self.assertIsNone(self.notification.last_sent_at)

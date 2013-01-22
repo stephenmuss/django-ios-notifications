@@ -11,26 +11,21 @@ class Command(BaseCommand):
     help = 'Created and immediately send a push notification to iOS devices'
     option_list = BaseCommand.option_list + (
         make_option('--message',
-            help='The main message to be sent in the notification',
-            dest='message',
-            default=None
-        ),
+                    help='The main message to be sent in the notification',
+                    dest='message',
+                    default=None),
         make_option('--badge',
-            help='The badge number of the notification',
-            dest='badge',
-            default=None
-        ),
+                    help='The badge number of the notification',
+                    dest='badge',
+                    default=None),
         make_option('--sound',
-            help='The sound for the notification',
-            dest='sound',
-            default=None
-        ),
+                    help='The sound for the notification',
+                    dest='sound',
+                    default=None),
         make_option('--service',
-            help='The id of the APN Service to send this notification through',
-            dest='service',
-            default=None
-        )
-    )
+                    help='The id of the APN Service to send this notification through',
+                    dest='service',
+                    default=None))
 
     def handle(self, *args, **options):
         if options['message'] is None:
@@ -51,9 +46,9 @@ class Command(BaseCommand):
         except APNService.DoesNotExist:
             raise CommandError('APNService with id %d does not exist' % service_id)
 
-        if not Notification.is_valid_length(options['message'], options['badge'], options['sound']):
+        notification = Notification.objects.create(message=options['message'], badge=options['badge'], service=service, sound=options['sound'])
+        if not notification.is_valid_length():
             raise CommandError('Notification exceeds the maximum payload length. Try making your message shorter.')
 
-        notification = Notification.objects.create(message=options['message'], badge=options['badge'], service=service, sound=options['sound'])
         service.push_notification_to_devices(notification)
         self.stdout.write('Notification pushed successfully\n')

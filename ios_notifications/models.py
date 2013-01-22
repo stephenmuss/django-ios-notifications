@@ -222,21 +222,20 @@ class Notification(models.Model):
     def __unicode__(self):
         return u'Notification: %s' % self.message
 
-    @staticmethod
-    def is_valid_length(message, badge=None, sound=None, extra=None):
+    def is_valid_length(self):
         """
         Determines if a notification payload is a valid length.
 
         returns bool
         """
-        aps = {'alert': message}
-        if badge is not None:
-            aps['badge'] = badge
-        if sound is not None:
-            aps['sound'] = sound
+        aps = {'alert': self.message}
+        if self.badge is not None:
+            aps['badge'] = self.badge
+        if self.sound is not None:
+            aps['sound'] = self.sound
         message = {'aps': aps}
-        if extra is not None:
-            message.update(extra)
+        if self.extra is not None:
+            message.update(self.extra)
         payload = json.dumps(message, separators=(',', ':'))
         return len(payload) <= 256
 
