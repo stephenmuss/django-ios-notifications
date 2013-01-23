@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from django.core.management.base import BaseCommand, CommandError
-from ios_notifications.models import Notification, APNService
 from optparse import make_option
+import json
 
-# TODO: argparse for Python 2.7
+from django.core.management.base import BaseCommand, CommandError
+
+from ios_notifications.models import Notification, APNService
 
 
 class Command(BaseCommand):
-    help = 'Created and immediately send a push notification to iOS devices'
+    help = 'Create and immediately send a push notification to iOS devices'
     option_list = BaseCommand.option_list + (
         make_option('--message',
                     help='The main message to be sent in the notification',
@@ -25,6 +26,10 @@ class Command(BaseCommand):
         make_option('--service',
                     help='The id of the APN Service to send this notification through',
                     dest='service',
+                    default=None),
+        make_option('--extra',
+                    help='Custom notification payload values as a JSON dictionary',
+                    dest='extra',
                     default=None))
 
     def handle(self, *args, **options):
@@ -47,6 +52,11 @@ class Command(BaseCommand):
             raise CommandError('APNService with id %d does not exist' % service_id)
 
         notification = Notification.objects.create(message=options['message'], badge=options['badge'], service=service, sound=options['sound'])
+
+        extra = options['extra']
+        if extra is not None:
+            notification.extra = json.loads(extra)
+
         if not notification.is_valid_length():
             raise CommandError('Notification exceeds the maximum payload length. Try making your message shorter.')
 
