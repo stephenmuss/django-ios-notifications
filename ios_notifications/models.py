@@ -179,7 +179,7 @@ class APNService(BaseService):
         return msg
 
     def __unicode__(self):
-        return u'APNService %s' % self.name
+        return self.name
 
     class Meta:
         unique_together = ('name', 'hostname')
@@ -220,7 +220,7 @@ class Notification(models.Model):
         self.service.push_notification_to_devices(self)
 
     def __unicode__(self):
-        return u'Notification: %s' % self.message
+        return self.message
 
     def is_valid_length(self):
         """
@@ -267,7 +267,7 @@ class Device(models.Model):
         self.save()
 
     def __unicode__(self):
-        return u'Device %s' % self.token
+        return self.token
 
     class Meta:
         unique_together = ('token', 'service')
@@ -314,7 +314,7 @@ class FeedbackService(BaseService):
             return devices.count()
 
     def __unicode__(self):
-        return u'FeedbackService %s' % self.name
+        return self.name
 
     class Meta:
         unique_together = ('name', 'hostname')
