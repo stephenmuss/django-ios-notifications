@@ -156,11 +156,18 @@ The optional arguments you may pass are:
 
 * `--badge` is an integer value to represent the badge value that will appear over your app's springboard icon after receiving the notification. e.g. `--badge=2`.
 * `--sound` is the sound to be played when the device receives your application. This can either be one of the built in sounds or one that you have included in your app. e.g. `--sound=default`.
+* `--extra` is for specifying any extra custom payload values you want to send with your notification. This should be in the form of a valid JSON dictionary. e.g. `--extra='{"foo": "bar", "baz": [1, 2, 3], "qux": 1}'`. __NB: `extra is not persistent and will not be saved to the database after the notification has been pushed__.
 
 Note that if you do not provide the optional arguments the default values for both are `None`. This means the device will
 neither play a sound or update the badge of your app's icon when receiving the notification.
 
-A full example: `./manage.py push_ios_notification --message='This is a push notification from Django iOS Notifications!' --service=123 --badge=1 --sound=default`.
+A full example:
+```bash
+./manage.py push_ios_notification \
+    --message='This is a push notification from Django iOS Notifications!' \
+    --service=123 --badge=1 --sound=default \
+    --extra='{"foo": "bar", "baz": [1, 2, 3], "qux": 1}'
+```
 
 
 API Authentication
