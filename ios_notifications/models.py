@@ -126,7 +126,7 @@ class APNService(BaseService):
             if not self.connect():
                 return
 
-        payload = self.get_payload(notification)
+        payload = notification.payload
 
         for device in devices:
             try:
@@ -144,27 +144,9 @@ class APNService(BaseService):
             for device in devices:
                 device.last_notified_at = datetime.datetime.now()
                 device.save()
-        notification.last_sent_at = datetime.datetime.now()
-        notification.save()
-
-    def get_payload(self, notification):
-        aps = {'alert': notification.message}
-        if notification.badge is not None:
-            aps['badge'] = notification.badge
-        if notification.sound is not None:
-            aps['sound'] = notification.sound
-
-        message = {'aps': aps}
-
-        if notification.extra is not None:
-            message.update(notification.extra)
-
-        payload = json.dumps(message, separators=(',', ':'))
-
-        if len(payload) > 256:
-            raise NotificationPayloadSizeExceeded
-
-        return payload
+        if notification.pk or notification.persist:
+            notification.last_sent_at = datetime.datetime.now()
+            notification.save()
 
     def pack_message(self, payload, device):
         """
@@ -196,6 +178,13 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     last_sent_at = models.DateTimeField(null=True, blank=True)
 
+    def __init__(self, *args, **kwargs):
+        self.persist = getattr(settings, 'IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS', True)
+        super(Notification, self).__init__(*args, **kwargs)
+
+    def __unicode__(self):
+        return self.message
+
     @property
     def extra(self):
         """
@@ -219,15 +208,16 @@ class Notification(models.Model):
         """
         self.service.push_notification_to_devices(self)
 
-    def __unicode__(self):
-        return self.message
-
     def is_valid_length(self):
         """
         Determines if a notification payload is a valid length.
 
         returns bool
         """
+        return len(self.payload) <= 256
+
+    @property
+    def payload(self):
         aps = {'alert': self.message}
         if self.badge is not None:
             aps['badge'] = self.badge
@@ -237,7 +227,7 @@ class Notification(models.Model):
         if self.extra is not None:
             message.update(self.extra)
         payload = json.dumps(message, separators=(',', ':'))
-        return len(payload) <= 256
+        return payload
 
 
 class Device(models.Model):
@@ -264,7 +254,6 @@ class Device(models.Model):
             raise TypeError('notification should be an instance of ios_notifications.models.Notification')
 
         notification.service.push_notification_to_devices(notification, [self])
-        self.save()
 
     def __unicode__(self):
         return self.token

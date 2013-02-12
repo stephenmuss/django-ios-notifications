@@ -30,7 +30,17 @@ class Command(BaseCommand):
         make_option('--extra',
                     help='Custom notification payload values as a JSON dictionary',
                     dest='extra',
-                    default=None))
+                    default=None),
+        make_option('--persist',
+                    help='Save the notification in the database after pushing it.',
+                    action='store_true',
+                    dest='persist',
+                    default=None),
+        make_option('--no-persist',
+                    help='Prevent saving the notification in the database after pushing it.',
+                    action='store_false',
+                    dest='persist'), # Note: same dest as --persist; they are mutually exclusive
+    )
 
     def handle(self, *args, **options):
         if options['message'] is None:
@@ -51,7 +61,12 @@ class Command(BaseCommand):
         except APNService.DoesNotExist:
             raise CommandError('APNService with id %d does not exist' % service_id)
 
-        notification = Notification.objects.create(message=options['message'], badge=options['badge'], service=service, sound=options['sound'])
+        notification = Notification(message=options['message'],
+                                    badge=options['badge'],
+                                    service=service,
+                                    sound=options['sound'])
+        if options['persist'] is not None:
+            notification.persist = options['persist']
 
         extra = options['extra']
         if extra is not None:
