@@ -172,18 +172,19 @@ class Notification(models.Model):
     Represents a notification which can be pushed to an iOS device.
     """
     service = models.ForeignKey(APNService)
-    message = models.CharField(max_length=200)
-    badge = models.PositiveIntegerField(default=1, null=True)
-    sound = models.CharField(max_length=30, null=True, default='default')
+    message = models.CharField(max_length=200, blank=True, help_text='Alert message to display to the user. Leave empty if no alert should be displayed to the user.')
+    badge = models.PositiveIntegerField(null=True, blank=True, help_text='New application icon badge number. Set to None if the badge number must not be changed.')
+    sound = models.CharField(max_length=30, blank=True, help_text='Name of the sound to play. Leave empty if no sound should be played.')
     created_at = models.DateTimeField(auto_now_add=True)
     last_sent_at = models.DateTimeField(null=True, blank=True)
+    custom_payload = models.CharField(max_length=240, blank=True, help_text='JSON representation of an object containing custom payload.')
 
     def __init__(self, *args, **kwargs):
         self.persist = getattr(settings, 'IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS', True)
         super(Notification, self).__init__(*args, **kwargs)
 
     def __unicode__(self):
-        return self.message
+        return u'%s%s%s' % (self.message, ' ' if self.message and self.custom_payload else '', self.custom_payload)
 
     @property
     def extra(self):
@@ -192,14 +193,16 @@ class Notification(models.Model):
         outside the Apple-reserved aps namespace
         http://developer.apple.com/library/mac/#documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/ApplePushService/ApplePushService.html#//apple_ref/doc/uid/TP40008194-CH100-SW1
         """
-        return getattr(self, '_extra', None)
+        return json.loads(self.custom_payload) if self.custom_payload else None
 
     @extra.setter
     def extra(self, value):
-        if not isinstance(value, dict):
-            raise TypeError('must be a valid Python dictionary')
-        json.dumps(value)  # Raises a TypeError if can't be serialized
-        self._extra = value
+        if value is None:
+            self.custom_payload = ''
+        else:
+            if not isinstance(value, dict):
+                raise TypeError('must be a valid Python dictionary')
+            self.custom_payload = json.dumps(value)  # Raises a TypeError if can't be serialized
 
     def push_to_all_devices(self):
         """
@@ -218,14 +221,17 @@ class Notification(models.Model):
 
     @property
     def payload(self):
-        aps = {'alert': self.message}
+        aps = {}
+        if self.message:
+            aps['alert'] = self.message
         if self.badge is not None:
             aps['badge'] = self.badge
-        if self.sound is not None:
+        if self.sound:
             aps['sound'] = self.sound
         message = {'aps': aps}
-        if self.extra is not None:
-            message.update(self.extra)
+        extra = self.extra
+        if extra is not None:
+            message.update(extra)
         payload = json.dumps(message, separators=(',', ':'))
         return payload
 
