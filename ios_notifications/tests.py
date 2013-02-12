@@ -42,11 +42,11 @@ class APNServiceTest(TestCase):
 
     def test_invalid_payload_size(self):
         n = Notification(message='.' * 260)
-        self.assertRaises(NotificationPayloadSizeExceeded, self.service.get_payload, n)
+        self.assertRaises(NotificationPayloadSizeExceeded, self.service.pack_message, n.payload, self.device)
 
     def test_payload_packed_correctly(self):
         fmt = self.service.fmt
-        payload = self.service.get_payload(self.notification)
+        payload = self.notification.payload
         msg = self.service.pack_message(payload, self.device)
         unpacked = struct.unpack(fmt % len(payload), msg)
         self.assertEqual(unpacked[-1], payload)
@@ -239,14 +239,28 @@ class NotificationTest(TestCase):
         self.notification.message = '.' * 260
         self.assertFalse(self.notification.is_valid_length())
 
-    def test_push_to_all_devices(self):
+    def test_push_to_all_devices_persist_existing(self):
         self.assertIsNone(self.notification.last_sent_at)
+        self.notification.persist = False
         self.notification.push_to_all_devices()
         self.assertIsNotNone(self.notification.last_sent_at)
 
+    def test_push_to_all_devices_persist_new(self):
+        notification = Notification(service=self.service, message='Test message (new)')
+        notification.persist = True
+        notification.push_to_all_devices()
+        self.assertIsNotNone(notification.last_sent_at)
+        self.assertIsNotNone(notification.pk)
+
+    def test_push_to_all_devices_no_persist(self):
+        notification = Notification(service=self.service, message='Test message (new)')
+        notification.persist = False
+        notification.push_to_all_devices()
+        self.assertIsNone(notification.last_sent_at)
+        self.assertIsNone(notification.pk)
+
     def tearDown(self):
         self.test_server_proc.kill()
-
 
 class ManagementCommandPushNotificationTest(TestCase):
     def setUp(self):
@@ -259,13 +273,48 @@ class ManagementCommandPushNotificationTest(TestCase):
         self.service.PORT = 2195
         self.device = Device.objects.create(token=TOKEN, service=self.service)
 
-    def test_call_push_ios_notification_command(self):
+        self.IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS = getattr(settings, 'IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS', 'NotSpecified')
+
+    def test_call_push_ios_notification_command_persist(self):
         msg = 'some message'
+        management.call_command('push_ios_notification', **{'message': msg, 'service': self.service.id, 'verbosity': 0, 'persist': True})
+        self.assertTrue(Notification.objects.filter(message=msg, last_sent_at__gt=self.started_at).exists())
+        self.assertTrue(self.device in Device.objects.filter(last_notified_at__gt=self.started_at))
+
+    def test_call_push_ios_notification_command_no_persist(self):
+        msg = 'some message'
+        management.call_command('push_ios_notification', **{'message': msg, 'service': self.service.id, 'verbosity': 0, 'persist': False})
+        self.assertFalse(Notification.objects.filter(message=msg, last_sent_at__gt=self.started_at).exists())
+        self.assertTrue(self.device in Device.objects.filter(last_notified_at__gt=self.started_at))
+
+    def test_call_push_ios_notification_command_default_persist(self):
+        msg = 'some message'
+        settings.IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS = True
+        management.call_command('push_ios_notification', **{'message': msg, 'service': self.service.id, 'verbosity': 0})
+        self.assertTrue(Notification.objects.filter(message=msg, last_sent_at__gt=self.started_at).exists())
+        self.assertTrue(self.device in Device.objects.filter(last_notified_at__gt=self.started_at))
+
+    def test_call_push_ios_notification_command_default_no_persist(self):
+        msg = 'some message'
+        settings.IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS = False
+        management.call_command('push_ios_notification', **{'message': msg, 'service': self.service.id, 'verbosity': 0})
+        self.assertFalse(Notification.objects.filter(message=msg, last_sent_at__gt=self.started_at).exists())
+        self.assertTrue(self.device in Device.objects.filter(last_notified_at__gt=self.started_at))
+
+    def test_call_push_ios_notification_command_default_persist_not_specified(self):
+        msg = 'some message'
+        if hasattr(settings, 'IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS'):
+            del settings.IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS
         management.call_command('push_ios_notification', **{'message': msg, 'service': self.service.id, 'verbosity': 0})
         self.assertTrue(Notification.objects.filter(message=msg, last_sent_at__gt=self.started_at).exists())
         self.assertTrue(self.device in Device.objects.filter(last_notified_at__gt=self.started_at))
 
     def tearDown(self):
+        if self.IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS == 'NotSpecified':
+            if hasattr(settings, 'IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS'):
+                del settings.IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS
+        else:
+            settings.IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS = self.IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS
         self.test_server_proc.kill()
 
 
