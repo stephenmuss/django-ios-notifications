@@ -23,9 +23,10 @@ class DeviceAdmin(admin.ModelAdmin):
 
 class NotificationAdmin(admin.ModelAdmin):
     exclude = ('last_sent_at',)
-    list_display = ('message', 'badge', 'sound', 'created_at', 'last_sent_at')
+    list_display = ('message', 'badge', 'sound', 'custom_payload', 'created_at', 'last_sent_at',)
     list_filter = ('created_at', 'last_sent_at')
-    search_fields = ('message', )
+    search_fields = ('message', 'custom_payload')
+    list_display_links = ('message', 'custom_payload',)
 
     def get_urls(self):
         urls = super(NotificationAdmin, self).get_urls()

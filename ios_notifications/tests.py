@@ -41,7 +41,7 @@ class APNServiceTest(TestCase):
         self.service.disconnect()
 
     def test_invalid_payload_size(self):
-        n = Notification(message='.' * 260)
+        n = Notification(message='.' * 250)
         self.assertRaises(NotificationPayloadSizeExceeded, self.service.pack_message, n.payload, self.device)
 
     def test_payload_packed_correctly(self):
@@ -228,16 +228,41 @@ class NotificationTest(TestCase):
         self.service = APNService.objects.create(name='service', hostname='127.0.0.1',
                                                  private_key=key, certificate=cert)
         self.service.PORT = 2195  # For ease of use simply change port to default port in test_server
-
-        self.notification = Notification.objects.create(service=self.service, message='Test message')
+        self.custom_payload = json.dumps({"." * 10: "." * 50})
+        self.notification = Notification.objects.create(service=self.service, message='Test message', custom_payload=self.custom_payload)
 
     def test_valid_length(self):
         self.notification.message = 'test message'
         self.assertTrue(self.notification.is_valid_length())
 
     def test_invalid_length(self):
-        self.notification.message = '.' * 260
+        self.notification.message = '.' * 250
         self.assertFalse(self.notification.is_valid_length())
+
+    def test_invalid_length_with_custom_payload(self):
+        self.notification.message = '.' * 100
+        self.notification.custom_payload = '{"%s":"%s"}' % ("." * 20, "." * 120)
+        self.assertFalse(self.notification.is_valid_length())
+
+    def test_extra_property_with_custom_payload(self):
+        custom_payload = {"." * 10: "." * 50, "nested": {"+" * 10: "+" * 50}}
+        self.notification.extra = custom_payload
+        self.assertEqual(self.notification.custom_payload, json.dumps(custom_payload))
+        self.assertEqual(self.notification.extra, custom_payload)
+        self.assertTrue(self.notification.is_valid_length())
+
+    def test_extra_property_not_dict(self):
+        class Dummy():
+            dummy = 1
+        def should_raise():
+            self.notification.extra = Dummy()
+        self.assertRaises(TypeError, should_raise)
+
+    def test_extra_property_none(self):
+        self.notification.extra = None
+        self.assertEqual(self.notification.extra, None)
+        self.assertEqual(self.notification.custom_payload, '')
+        self.assertTrue(self.notification.is_valid_length())
 
     def test_push_to_all_devices_persist_existing(self):
         self.assertIsNone(self.notification.last_sent_at)
