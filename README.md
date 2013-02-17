@@ -254,6 +254,13 @@ http://127.0.0.1:8000/admin/ios_notifications/device/
 See [Issues with Using the Feedback Service](http://developer.apple.com/library/ios/#technotes/tn2265/_index.html
 for more details)
 
+
+Contributors
+-----------------
+Stephen Muss
+
+Maxime Bargiel
+
 ***
 
 This source code is released under a New BSD License. See the LICENSE file for full details.
