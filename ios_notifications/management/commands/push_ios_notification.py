@@ -39,12 +39,10 @@ class Command(BaseCommand):
         make_option('--no-persist',
                     help='Prevent saving the notification in the database after pushing it.',
                     action='store_false',
-                    dest='persist'), # Note: same dest as --persist; they are mutually exclusive
+                    dest='persist'),  # Note: same dest as --persist; they are mutually exclusive
     )
 
     def handle(self, *args, **options):
-        if options['message'] is None:
-            raise CommandError('The --message option is required')
         if options['service'] is None:
             raise CommandError('The --service option is required')
         try:
@@ -65,6 +63,7 @@ class Command(BaseCommand):
                                     badge=options['badge'],
                                     service=service,
                                     sound=options['sound'])
+
         if options['persist'] is not None:
             notification.persist = options['persist']
 
