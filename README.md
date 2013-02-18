@@ -31,6 +31,7 @@ urlpatterns = patterns('',
 ```
 
 After that you will need to run `./manage.py syncdb` to create the database tables required for django-ios-notifications.
+Alternatively there are also south migrations available for those who prefer to use south.
 
 
 Setting up the APN Services
@@ -145,28 +146,45 @@ Another options is to use the built in management command provided by django-ios
 You can do this by calling `./manage.py push_ios_notification` from the command line.
 You will need to provide some arguments to the command in order to create and send a notification.
 
-There are two required options and two optional ones.
 
-The required arguments are:
+There is only one required argument:
 
-* `--message` is a string containing the main message of your notification. e.g. `--message='This is a push notification from Django iOS Notifications!'`
 * `--service` is the id of the APN Service you wish to use. e.g. `--service=123`.
 
 The optional arguments you may pass are:
 
+* `--message` is a string containing the main message of your notification. e.g. `--message='This is a push notification from Django iOS Notifications!'`
 * `--badge` is an integer value to represent the badge value that will appear over your app's springboard icon after receiving the notification. e.g. `--badge=2`.
 * `--sound` is the sound to be played when the device receives your application. This can either be one of the built in sounds or one that you have included in your app. e.g. `--sound=default`.
-* `--extra` is for specifying any extra custom payload values you want to send with your notification. This should be in the form of a valid JSON dictionary. e.g. `--extra='{"foo": "bar", "baz": [1, 2, 3], "qux": 1}'`. __NB: `extra is not persistent and will not be saved to the database after the notification has been pushed__.
+* `--extra` is for specifying any extra custom payload values you want to send with your notification. This should be in the form of a valid JSON dictionary. e.g. `--extra='{"foo": "bar", "baz": [1, 2, 3], "qux": 1}'`.
+* `--persist` is for forcing persistence of notifications in the database.
+* `--no-persist` will not save the notification to the database.
 
-Note that if you do not provide the optional arguments the default values for both are `None`. This means the device will
-neither play a sound or update the badge of your app's icon when receiving the notification.
+Note that in order to play a sound the `--sound` parameter must be supplied. Likewise, to display a badge number on the app icon
+the `--badge` parameter should be supplied.
 
 A full example:
 ```bash
 ./manage.py push_ios_notification \
     --message='This is a push notification from Django iOS Notifications!' \
-    --service=123 --badge=1 --sound=default \
-    --extra='{"foo": "bar", "baz": [1, 2, 3], "qux": 1}'
+    --service=123 \
+    --badge=1 \
+    --sound=default \
+    --extra='{"foo": "bar", "baz": [1, 2, 3], "qux": 1}' \
+    --persist
+```
+
+
+Notification persistence
+-----------------
+
+By default notification objects are saved to the database. If you do not require this behaviour it is possible
+to disable notification persistence.
+
+In your `settings.py` file include the following:
+
+```python
+IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS = False
 ```
 
 
