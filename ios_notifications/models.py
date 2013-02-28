@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import socket
 import struct
+import errno
 from binascii import hexlify, unhexlify
 import datetime
 
@@ -129,24 +130,37 @@ class APNService(BaseService):
         payload = notification.payload
 
         for device in devices:
+            if not device.is_active:
+                continue
             try:
                 self.connection.send(self.pack_message(payload, device))
-            except OpenSSL.SSL.WantWriteError:
+            except (OpenSSL.SSL.WantWriteError, socket.error) as e:
+                if isinstance(e, socket.error) and isinstance(e.args, tuple) and e.args[0] != errno.EPIPE:
+                    raise  # Unexpected exception, raise it.
                 self.disconnect()
                 i = devices.index(device)
-                if isinstance(devices, models.query.QuerySet):
-                    devices.update(last_notified_at=datetime.datetime.now())
-                devices[:i].update(last_notified_at=datetime.datetime.now())
-                return self._write_message(notification, devices[i:]) if self.connect() else None
-        if isinstance(devices, models.query.QuerySet):
-            devices.update(last_notified_at=datetime.datetime.now())
-        else:
-            for device in devices:
-                device.last_notified_at = datetime.datetime.now()
-                device.save()
+                self.set_devices_last_notified_at(devices[:i])
+                # Start again from the next device.
+                # We start from the next device since
+                # if the device no longer accepts push notifications from your app
+                # and you send one to it anyways, Apple immediately drops the connection to your APNS socket.
+                # http://stackoverflow.com/a/13332486/1025116
+                return self._write_message(notification, devices[i + 1:]) if self.connect() else None
+
+        self.set_devices_last_notified_at(devices)
+
         if notification.pk or notification.persist:
             notification.last_sent_at = datetime.datetime.now()
             notification.save()
+
+    def set_devices_last_notified_at(self, devices):
+        if isinstance(devices, models.query.QuerySet):
+            devices.update(last_notified_at=datetime.datetime.now())
+        else:
+            # Rather than do a save on every object
+            # fetch another queryset and use it to update
+            # the devices in a single query.
+            Device.objects.filter(pk__in=[d.pk for d in devices]).update(last_notified_at=datetime.datetime.now())
 
     def pack_message(self, payload, device):
         """

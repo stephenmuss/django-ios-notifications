@@ -59,6 +59,7 @@ class APNServiceTest(TestCase):
         self.assertIsNone(self.device.last_notified_at)
         self.service.push_notification_to_devices(self.notification, [self.device])
         self.assertIsNotNone(self.notification.last_sent_at)
+        self.device = Device.objects.get(pk=self.device.pk)  # Refresh the object with values from db
         self.assertIsNotNone(self.device.last_notified_at)
 
     def test_create_with_passphrase(self):
