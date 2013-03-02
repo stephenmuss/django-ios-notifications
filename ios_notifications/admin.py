@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
+try:
+    from django.conf.urls import patterns, url
+except ImportError:  # deprecated since Django 1.4
+    from django.conf.urls.defaults import patterns, url
+
 from django.contrib import admin
-from django.conf.urls.defaults import patterns, url
 from django.template.response import TemplateResponse
 from django.shortcuts import get_object_or_404
 
