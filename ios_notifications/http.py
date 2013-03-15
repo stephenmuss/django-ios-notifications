@@ -1,7 +1,8 @@
+import json
+
 from django.db.models.query import QuerySet
 from django.http import HttpResponse
 from django.core import serializers
-from django.utils import simplejson as json
 
 
 class HttpResponseNotImplemented(HttpResponse):

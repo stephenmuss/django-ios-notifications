@@ -4,15 +4,18 @@ import struct
 import errno
 from binascii import hexlify, unhexlify
 import datetime
+import json
 
 from django.db import models
+
 try:
     from django.contrib.auth import get_user_model
 except ImportError:  # django < 1.5
     from django.contrib.auth.models import User
 else:
     User = get_user_model()
-from django.utils import simplejson as json
+
+
 from django_fields.fields import EncryptedCharField
 from django.conf import settings
 

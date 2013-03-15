@@ -4,11 +4,11 @@ import time
 import struct
 import os
 import datetime
+import json
 
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
-from django.utils import simplejson as json
 from django.http import HttpResponseNotAllowed
 from django.conf import settings
 from django.core import management
