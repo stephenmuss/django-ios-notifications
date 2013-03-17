@@ -175,6 +175,29 @@ A full example:
 ```
 
 
+Sending a notification to a subset of devices.
+-----------------
+
+If you wish to send a notification to just a subset of devices you can use the django-ios-notifications API to easily do so.
+The main assumption here is that you will have some way of knowing to which devices you wish to push a notification.
+
+Below follows a simple example of how to push a notification to a subset of devices based of their unique push tokens.
+
+```python
+device_tokens = ('97bc2e598e1a11e2bacfb8f6b113c99597bd77428e1a11e2ae36b8f6b113c995',
+                 '9c97e3d78e1a11e28470b8f6b113c9959c97e5a38e1a11e28fd6b8f6b113c995',
+                 'ba32393d8e1a11e28035b8f6b113c995ba323b0a8e1a11e28254b8f6b113c995',
+                 'c71667578e1a11e2a5cfb8f6b113c995c716692e8e1a11e29c74b8f6b113c995')
+
+apns = APNService.objects.get(hostname='gateway.push.apple.com', name='production')
+devices = Device.objects.filter(token__in=device_tokens, service=apns)
+notification - Notification.objects.create(message='Some message', service=apns)
+apns.push_notification_to_devices(notification, devices)
+```
+
+Note, you simply need to use the `APNService.push_notification_to_devices` method to push a notification to the devices.
+
+
 Notification persistence
 -----------------
 
