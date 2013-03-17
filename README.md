@@ -191,7 +191,7 @@ device_tokens = ('97bc2e598e1a11e2bacfb8f6b113c99597bd77428e1a11e2ae36b8f6b113c9
 
 apns = APNService.objects.get(hostname='gateway.push.apple.com', name='production')
 devices = Device.objects.filter(token__in=device_tokens, service=apns)
-notification - Notification.objects.create(message='Some message', service=apns)
+notification = Notification.objects.create(message='Some message', service=apns)
 apns.push_notification_to_devices(notification, devices)
 ```
 
