@@ -2,6 +2,7 @@
 
 from optparse import make_option
 import json
+import sys
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -75,4 +76,5 @@ class Command(BaseCommand):
             raise CommandError('Notification exceeds the maximum payload length. Try making your message shorter.')
 
         service.push_notification_to_devices(notification)
-        self.stdout.write('Notification pushed successfully\n')
+        if 'test' not in sys.argv:
+            self.stdout.write('Notification pushed successfully\n')
