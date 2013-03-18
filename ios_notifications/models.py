@@ -3,10 +3,15 @@ import socket
 import struct
 import errno
 from binascii import hexlify, unhexlify
-import datetime
 import json
 
 from django.db import models
+
+try:
+    from django.utils.timezone import now as dt_now
+except ImportError:
+    import datetime
+    dt_now = datetime.datetime.now
 
 try:
     from django.contrib.auth import get_user_model
@@ -158,17 +163,17 @@ class APNService(BaseService):
         self.set_devices_last_notified_at(devices)
 
         if notification.pk or notification.persist:
-            notification.last_sent_at = datetime.datetime.now()
+            notification.last_sent_at = dt_now()
             notification.save()
 
     def set_devices_last_notified_at(self, devices):
         if isinstance(devices, models.query.QuerySet):
-            devices.update(last_notified_at=datetime.datetime.now())
+            devices.update(last_notified_at=dt_now())
         else:
             # Rather than do a save on every object
             # fetch another queryset and use it to update
             # the devices in a single query.
-            Device.objects.filter(pk__in=[d.pk for d in devices]).update(last_notified_at=datetime.datetime.now())
+            Device.objects.filter(pk__in=[d.pk for d in devices]).update(last_notified_at=dt_now())
 
     def pack_message(self, payload, device):
         """
@@ -326,7 +331,7 @@ class FeedbackService(BaseService):
                 # Nothing to receive
                 pass
             devices = Device.objects.filter(token__in=device_tokens, service=self.apn_service)
-            devices.update(is_active=False, deactivated_at=datetime.datetime.now())
+            devices.update(is_active=False, deactivated_at=dt_now())
             self.disconnect()
             return devices.count()
 

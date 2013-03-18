@@ -3,7 +3,6 @@ import subprocess
 import time
 import struct
 import os
-import datetime
 import json
 
 from django.test import TestCase
@@ -12,6 +11,12 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseNotAllowed
 from django.conf import settings
 from django.core import management
+
+try:
+    from django.utils.timezone import now as dt_now
+except ImportError:
+    import datetime
+    dt_now = datetime.datetime.now
 
 from .models import APNService, Device, Notification, NotificationPayloadSizeExceeded
 from .http import JSONResponse
@@ -290,7 +295,7 @@ class NotificationTest(TestCase):
 
 class ManagementCommandPushNotificationTest(TestCase):
     def setUp(self):
-        self.started_at = datetime.datetime.now()
+        self.started_at = dt_now()
         self.test_server_proc = subprocess.Popen(SSL_SERVER_COMMAND, stdout=subprocess.PIPE)
         time.sleep(0.5)
         cert, key = generate_cert_and_pkey()
