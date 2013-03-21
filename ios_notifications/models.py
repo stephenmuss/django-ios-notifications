@@ -6,20 +6,13 @@ from binascii import hexlify, unhexlify
 import json
 
 from django.db import models
+from django.conf import settings
 
 try:
     from django.utils.timezone import now as dt_now
 except ImportError:
     import datetime
     dt_now = datetime.datetime.now
-
-try:
-    from django.contrib.auth import get_user_model
-except ImportError:  # django < 1.5
-    from django.contrib.auth.models import User
-else:
-    User = get_user_model()
-
 
 from django_fields.fields import EncryptedCharField
 from django.conf import settings
@@ -271,7 +264,7 @@ class Device(models.Model):
     is_active = models.BooleanField(default=True)
     deactivated_at = models.DateTimeField(null=True, blank=True)
     service = models.ForeignKey(APNService)
-    users = models.ManyToManyField(User, null=True, blank=True, related_name='ios_devices')
+    users = models.ManyToManyField(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), null=True, blank=True, related_name='ios_devices')
     added_at = models.DateTimeField(auto_now_add=True)
     last_notified_at = models.DateTimeField(null=True, blank=True)
     platform = models.CharField(max_length=30, blank=True, null=True)
