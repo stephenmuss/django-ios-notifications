@@ -306,7 +306,7 @@ class FeedbackService(BaseService):
         """
         Establishes an encrypted socket connection to the feedback service.
         """
-        return super(FeedbackService, self).connect(self.apn_service.certificate, self.apn_service.private_key)
+        return super(FeedbackService, self).connect(self.apn_service.certificate, self.apn_service.private_key, self.apns_service.passphrase)
 
     def call(self):
         """
