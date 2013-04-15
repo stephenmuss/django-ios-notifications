@@ -2,8 +2,8 @@
 import socket
 import struct
 import errno
-from binascii import hexlify, unhexlify
 import json
+from binascii import hexlify, unhexlify
 
 from django.db import models
 from django.conf import settings
@@ -15,24 +15,9 @@ except ImportError:
     dt_now = datetime.datetime.now
 
 from django_fields.fields import EncryptedCharField
-from django.conf import settings
-
 import OpenSSL
 
-
-class NotificationPayloadSizeExceeded(Exception):
-    def __init__(self, message='The notification maximum payload size of 256 bytes was exceeded'):
-        super(NotificationPayloadSizeExceeded, self).__init__(message)
-
-
-class NotConnectedException(Exception):
-    def __init__(self, message='You must open a socket connection before writing a message'):
-        super(NotConnectedException, self).__init__(message)
-
-
-class InvalidPassPhrase(Exception):
-    def __init__(self, message='The passphrase for the private key appears to be invalid'):
-        super(InvalidPassPhrase, self).__init__(message)
+from .exceptions import NotificationPayloadSizeExceeded, InvalidPassPhrase
 
 
 class BaseService(models.Model):
@@ -67,13 +52,7 @@ class BaseService(models.Model):
         self.connection = OpenSSL.SSL.Connection(context, sock)
         self.connection.connect((self.hostname, self.PORT))
         self.connection.set_connect_state()
-        try:
-            self.connection.do_handshake()
-            return True
-        except Exception as e:
-            if getattr(settings, 'DEBUG', False):
-                print e, e.__class__
-        return False
+        self.connection.do_handshake()
 
     def disconnect(self):
         """
@@ -109,7 +88,7 @@ class APNService(BaseService):
         """
         return super(APNService, self).connect(self.certificate, self.private_key, self.passphrase)
 
-    def push_notification_to_devices(self, notification, devices=None):
+    def push_notification_to_devices(self, notification, devices=None, chunk_size=100):
         """
         Sends the specific notification to devices.
         if `devices` is not supplied, all devices in the `APNService`'s device
@@ -117,11 +96,9 @@ class APNService(BaseService):
         """
         if devices is None:
             devices = self.device_set.filter(is_active=True)
-        if self.connect():
-            self._write_message(notification, devices)
-            self.disconnect()
+        self._write_message(notification, devices, chunk_size=chunk_size)
 
-    def _write_message(self, notification, devices):
+    def _write_message(self, notification, devices, chunk_size=100):
         """
         Writes the message for the supplied devices to
         the APN Service SSL socket.
@@ -129,44 +106,45 @@ class APNService(BaseService):
         if not isinstance(notification, Notification):
             raise TypeError('notification should be an instance of ios_notifications.models.Notification')
 
-        if self.connection is None:
-            if not self.connect():
-                return
-
         payload = notification.payload
 
-        for device in devices:
-            if not device.is_active:
-                continue
-            try:
-                self.connection.send(self.pack_message(payload, device))
-            except (OpenSSL.SSL.WantWriteError, socket.error) as e:
-                if isinstance(e, socket.error) and isinstance(e.args, tuple) and e.args[0] != errno.EPIPE:
-                    raise  # Unexpected exception, raise it.
-                self.disconnect()
-                i = devices.index(device)
-                self.set_devices_last_notified_at(devices[:i])
-                # Start again from the next device.
-                # We start from the next device since
-                # if the device no longer accepts push notifications from your app
-                # and you send one to it anyways, Apple immediately drops the connection to your APNS socket.
-                # http://stackoverflow.com/a/13332486/1025116
-                return self._write_message(notification, devices[i + 1:]) if self.connect() else None
+        # Split the devices into manageable chunks.
+        # Chunk sizes being determined by the `chunk_size` kwarg.
+        device_length = devices.count() if isinstance(devices, models.query.QuerySet) else len(devices)
+        chunks = [devices[i:i + chunk_size] for i in xrange(0, device_length, chunk_size)]
 
-        self.set_devices_last_notified_at(devices)
+        for chunk in chunks:
+            self.connect()
+
+            for device in chunk:
+                if not device.is_active:
+                    continue
+                try:
+                    self.connection.send(self.pack_message(payload, device))
+                except (OpenSSL.SSL.WantWriteError, socket.error) as e:
+                    if isinstance(e, socket.error) and isinstance(e.args, tuple) and e.args[0] != errno.EPIPE:
+                        raise e  # Unexpected exception, raise it.
+                    self.disconnect()
+                    i = chunk.index(device)
+                    self.set_devices_last_notified_at(chunk[:i])
+                    self._write_message(notification, chunk[i + 1:])
+
+            self.disconnect()
+
+            self.set_devices_last_notified_at(chunk)
 
         if notification.pk or notification.persist:
             notification.last_sent_at = dt_now()
             notification.save()
 
     def set_devices_last_notified_at(self, devices):
-        if isinstance(devices, models.query.QuerySet):
-            devices.update(last_notified_at=dt_now())
-        else:
-            # Rather than do a save on every object
-            # fetch another queryset and use it to update
-            # the devices in a single query.
-            Device.objects.filter(pk__in=[d.pk for d in devices]).update(last_notified_at=dt_now())
+        # Rather than do a save on every object,
+        # fetch another queryset and use it to update
+        # the devices in a single query.
+        # Since the devices argument could be a sliced queryset
+        # we can't rely on devices.update() even if devices is
+        # a queryset object.
+        Device.objects.filter(pk__in=[d.pk for d in devices]).update(last_notified_at=dt_now())
 
     def pack_message(self, payload, device):
         """
@@ -312,21 +290,21 @@ class FeedbackService(BaseService):
         """
         Calls the feedback service and deactivates any devices the feedback service mentions.
         """
-        if self.connect():
-            device_tokens = []
-            try:
-                while True:
-                    data = self.connection.recv(38)  # 38 being the length in bytes of the binary format feedback tuple.
-                    timestamp, token_length, token = struct.unpack(self.fmt, data)
-                    device_token = hexlify(token)
-                    device_tokens.append(device_token)
-            except OpenSSL.SSL.ZeroReturnError:
-                # Nothing to receive
-                pass
-            devices = Device.objects.filter(token__in=device_tokens, service=self.apn_service)
-            devices.update(is_active=False, deactivated_at=dt_now())
-            self.disconnect()
-            return devices.count()
+        self.connect()
+        device_tokens = []
+        try:
+            while True:
+                data = self.connection.recv(38)  # 38 being the length in bytes of the binary format feedback tuple.
+                timestamp, token_length, token = struct.unpack(self.fmt, data)
+                device_token = hexlify(token)
+                device_tokens.append(device_token)
+        except OpenSSL.SSL.ZeroReturnError:
+            # Nothing to receive
+            pass
+        devices = Device.objects.filter(token__in=device_tokens, service=self.apn_service)
+        devices.update(is_active=False, deactivated_at=dt_now())
+        self.disconnect()
+        return devices.count()
 
     def __unicode__(self):
         return self.name

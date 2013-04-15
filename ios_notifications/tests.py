@@ -4,6 +4,7 @@ import time
 import struct
 import os
 import json
+import uuid
 
 from django.test import TestCase
 from django.core.urlresolvers import reverse
@@ -41,10 +42,6 @@ class APNServiceTest(TestCase):
         self.device = Device.objects.create(token=TOKEN, service=self.service)
         self.notification = Notification.objects.create(message='Test message', service=self.service)
 
-    def test_connection_to_remote_apn_host(self):
-        self.assertTrue(self.service.connect())
-        self.service.disconnect()
-
     def test_invalid_payload_size(self):
         n = Notification(message='.' * 250)
         self.assertRaises(NotificationPayloadSizeExceeded, self.service.pack_message, n.payload, self.device)
@@ -77,6 +74,20 @@ class APNServiceTest(TestCase):
         form = APNServiceForm({'name': 'test', 'hostname': 'localhost', 'certificate': cert, 'private_key': key, 'passphrase': 'incorrect'})
         self.assertFalse(form.is_valid())
         self.assertTrue('passphrase' in form.errors)
+
+    def test_pushing_notification_in_chunks(self):
+        devices = []
+        for i in xrange(10):
+            token = uuid.uuid1().get_hex() * 2
+            device = Device.objects.create(token=token, service=self.service)
+            devices.append(device)
+
+        started_at = dt_now()
+        self.service.push_notification_to_devices(self.notification, devices, chunk_size=2)
+        device_count = len(devices)
+        self.assertTrue(device_count)
+        self.assertEquals(device_count,
+                          Device.objects.filter(last_notified_at__gte=started_at).count())
 
     def tearDown(self):
         self.test_server_proc.kill()
@@ -260,6 +271,7 @@ class NotificationTest(TestCase):
     def test_extra_property_not_dict(self):
         class Dummy():
             dummy = 1
+
         def should_raise():
             self.notification.extra = Dummy()
         self.assertRaises(TypeError, should_raise)
@@ -292,6 +304,7 @@ class NotificationTest(TestCase):
 
     def tearDown(self):
         self.test_server_proc.kill()
+
 
 class ManagementCommandPushNotificationTest(TestCase):
     def setUp(self):
