@@ -85,7 +85,6 @@ class APNServiceTest(TestCase):
         started_at = dt_now()
         self.service.push_notification_to_devices(self.notification, devices, chunk_size=2)
         device_count = len(devices)
-        self.assertTrue(device_count)
         self.assertEquals(device_count,
                           Device.objects.filter(last_notified_at__gte=started_at).count())
 
