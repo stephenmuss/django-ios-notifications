@@ -98,7 +98,7 @@ class APNService(BaseService):
             devices = self.device_set.filter(is_active=True)
         self._write_message(notification, devices, chunk_size=chunk_size)
 
-    def _write_message(self, notification, devices, chunk_size=100):
+    def _write_message(self, notification, devices, chunk_size):
         """
         Writes the message for the supplied devices to
         the APN Service SSL socket.
@@ -109,7 +109,7 @@ class APNService(BaseService):
         payload = notification.payload
 
         # Split the devices into manageable chunks.
-        # Chunk sizes being determined by the `chunk_size` kwarg.
+        # Chunk sizes being determined by the `chunk_size` arg.
         device_length = devices.count() if isinstance(devices, models.query.QuerySet) else len(devices)
         chunks = [devices[i:i + chunk_size] for i in xrange(0, device_length, chunk_size)]
 
