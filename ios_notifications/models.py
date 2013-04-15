@@ -302,9 +302,10 @@ class FeedbackService(BaseService):
         except OpenSSL.SSL.ZeroReturnError:
             # Nothing to receive
             pass
+        finally:
+            self._disconnect()
         devices = Device.objects.filter(token__in=device_tokens, service=self.apn_service)
         devices.update(is_active=False, deactivated_at=dt_now())
-        self._disconnect()
         return devices.count()
 
     def __unicode__(self):
