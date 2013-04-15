@@ -29,7 +29,7 @@ class BaseService(models.Model):
     PORT = 0  # Should be overriden by subclass
     connection = None
 
-    def connect(self, certificate, private_key, passphrase=None):
+    def _connect(self, certificate, private_key, passphrase=None):
         """
         Establishes an encrypted SSL socket connection to the service.
         After connecting the socket can be written to or read from.
@@ -54,7 +54,7 @@ class BaseService(models.Model):
         self.connection.set_connect_state()
         self.connection.do_handshake()
 
-    def disconnect(self):
+    def _disconnect(self):
         """
         Closes the SSL socket connection.
         """
@@ -81,12 +81,12 @@ class APNService(BaseService):
     PORT = 2195
     fmt = '!cH32sH%ds'
 
-    def connect(self):
+    def _connect(self):
         """
         Establishes an encrypted SSL socket connection to the service.
         After connecting the socket can be written to or read from.
         """
-        return super(APNService, self).connect(self.certificate, self.private_key, self.passphrase)
+        return super(APNService, self)._connect(self.certificate, self.private_key, self.passphrase)
 
     def push_notification_to_devices(self, notification, devices=None, chunk_size=100):
         """
@@ -113,8 +113,9 @@ class APNService(BaseService):
         device_length = devices.count() if isinstance(devices, models.query.QuerySet) else len(devices)
         chunks = [devices[i:i + chunk_size] for i in xrange(0, device_length, chunk_size)]
 
-        for chunk in chunks:
-            self.connect()
+        for index in xrange(len(chunks)):
+            chunk = chunks[index]
+            self._connect()
 
             for device in chunk:
                 if not device.is_active:
@@ -124,12 +125,12 @@ class APNService(BaseService):
                 except (OpenSSL.SSL.WantWriteError, socket.error) as e:
                     if isinstance(e, socket.error) and isinstance(e.args, tuple) and e.args[0] != errno.EPIPE:
                         raise e  # Unexpected exception, raise it.
-                    self.disconnect()
+                    self._disconnect()
                     i = chunk.index(device)
                     self.set_devices_last_notified_at(chunk[:i])
                     self._write_message(notification, chunk[i + 1:])
 
-            self.disconnect()
+            self._disconnect()
 
             self.set_devices_last_notified_at(chunk)
 
@@ -280,7 +281,7 @@ class FeedbackService(BaseService):
 
     fmt = '!lh32s'
 
-    def connect(self):
+    def _connect(self):
         """
         Establishes an encrypted socket connection to the feedback service.
         """
@@ -290,7 +291,7 @@ class FeedbackService(BaseService):
         """
         Calls the feedback service and deactivates any devices the feedback service mentions.
         """
-        self.connect()
+        self._connect()
         device_tokens = []
         try:
             while True:
@@ -303,7 +304,7 @@ class FeedbackService(BaseService):
             pass
         devices = Device.objects.filter(token__in=device_tokens, service=self.apn_service)
         devices.update(is_active=False, deactivated_at=dt_now())
-        self.disconnect()
+        self._disconnect()
         return devices.count()
 
     def __unicode__(self):
