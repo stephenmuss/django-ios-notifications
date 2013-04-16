@@ -96,7 +96,7 @@ class APNService(BaseService):
         """
         if devices is None:
             devices = self.device_set.filter(is_active=True)
-        self._write_message(notification, devices, chunk_size=chunk_size)
+        self._write_message(notification, devices, chunk_size)
 
     def _write_message(self, notification, devices, chunk_size):
         """
