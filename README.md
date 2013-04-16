@@ -24,9 +24,9 @@ If you want to use the API for registering devices you will also need to make th
 
 ```python
 urlpatterns = patterns('',
-    ...
+    # ...
     url(r'^ios-notifications/', include('ios_notifications.urls')),
-    ...
+    # ...
 )
 ```
 
@@ -183,6 +183,10 @@ The main assumption here is that you will have some way of knowing to which devi
 
 Below follows a simple example of how to push a notification to a subset of devices based of their unique push tokens.
 
+Note that the notification is sent to devices in chunks. The chunk size can be specified in `APNService.push_notification_to_devices`.
+The default chunk size is 100. There is some debate on the ideal chunk size, but using chunks larger than a few hundred at a time is
+not recommended.
+
 ```python
 device_tokens = ('97bc2e598e1a11e2bacfb8f6b113c99597bd77428e1a11e2ae36b8f6b113c995',
                  '9c97e3d78e1a11e28470b8f6b113c9959c97e5a38e1a11e28fd6b8f6b113c995',
@@ -192,10 +196,19 @@ device_tokens = ('97bc2e598e1a11e2bacfb8f6b113c99597bd77428e1a11e2ae36b8f6b113c9
 apns = APNService.objects.get(hostname='gateway.push.apple.com', name='production')
 devices = Device.objects.filter(token__in=device_tokens, service=apns)
 notification = Notification.objects.create(message='Some message', service=apns)
-apns.push_notification_to_devices(notification, devices)
+apns.push_notification_to_devices(notification, devices, chunk_size=200)  # Override the default chunk size to 200 (instead of 100)
 ```
 
 Note, you simply need to use the `APNService.push_notification_to_devices` method to push a notification to the devices.
+
+
+Connecting to the APNService.
+-----------------
+
+When you push a notification, a connection to the APNService is opened. It should be noted that this can raise
+an exception if a problem occurred when attempting to make the connection.
+
+See the [pyOpenSSL documentation](http://pythonhosted.org/pyOpenSSL/openssl-ssl.html#openssl-ssl) for more information.
 
 
 Notification persistence
