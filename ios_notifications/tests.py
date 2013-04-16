@@ -31,10 +31,12 @@ SSL_SERVER_COMMAND = ('openssl', 's_server', '-accept', '2195', '-cert', TEST_PE
 
 
 class APNServiceTest(TestCase):
-    def setUp(self):
-        self.test_server_proc = subprocess.Popen(SSL_SERVER_COMMAND, stdout=subprocess.PIPE)
+    @classmethod
+    def setUpClass(cls):
+        cls.test_server_proc = subprocess.Popen(SSL_SERVER_COMMAND, stdout=subprocess.PIPE)
         time.sleep(0.5)  # Wait for test server to be started
 
+    def setUp(self):
         cert, key = generate_cert_and_pkey()
         self.service = APNService.objects.create(name='test-service', hostname='127.0.0.1',
                                                  certificate=cert, private_key=key)
@@ -88,12 +90,12 @@ class APNServiceTest(TestCase):
         self.assertEquals(device_count,
                           Device.objects.filter(last_notified_at__gte=started_at).count())
 
-    def tearDown(self):
-        self.test_server_proc.kill()
+    @classmethod
+    def tearDownClass(cls):
+        cls.test_server_proc.kill()
 
 
 class APITest(TestCase):
-
     def setUp(self):
         self.service = APNService.objects.create(name='sandbox', hostname='gateway.sandbox.push.apple.com')
         self.device_token = TOKEN
@@ -237,9 +239,12 @@ class AuthenticationDecoratorTestAuthBasic(TestCase):
 
 
 class NotificationTest(TestCase):
-    def setUp(self):
-        self.test_server_proc = subprocess.Popen(SSL_SERVER_COMMAND, stdout=subprocess.PIPE)
+    @classmethod
+    def setUpClass(cls):
+        cls.test_server_proc = subprocess.Popen(SSL_SERVER_COMMAND, stdout=subprocess.PIPE)
         time.sleep(0.5)
+
+    def setUp(self):
         cert, key = generate_cert_and_pkey()
         self.service = APNService.objects.create(name='service', hostname='127.0.0.1',
                                                  private_key=key, certificate=cert)
@@ -268,12 +273,8 @@ class NotificationTest(TestCase):
         self.assertTrue(self.notification.is_valid_length())
 
     def test_extra_property_not_dict(self):
-        class Dummy():
-            dummy = 1
-
-        def should_raise():
-            self.notification.extra = Dummy()
-        self.assertRaises(TypeError, should_raise)
+        with self.assertRaises(TypeError):
+            self.notification.extra = 111
 
     def test_extra_property_none(self):
         self.notification.extra = None
@@ -301,15 +302,19 @@ class NotificationTest(TestCase):
         self.assertIsNone(notification.last_sent_at)
         self.assertIsNone(notification.pk)
 
-    def tearDown(self):
-        self.test_server_proc.kill()
+    @classmethod
+    def tearDownClass(cls):
+        cls.test_server_proc.kill()
 
 
 class ManagementCommandPushNotificationTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.test_server_proc = subprocess.Popen(SSL_SERVER_COMMAND, stdout=subprocess.PIPE)
+        time.sleep(0.5)  # Wait for test server to be started
+
     def setUp(self):
         self.started_at = dt_now()
-        self.test_server_proc = subprocess.Popen(SSL_SERVER_COMMAND, stdout=subprocess.PIPE)
-        time.sleep(0.5)
         cert, key = generate_cert_and_pkey()
         self.service = APNService.objects.create(name='service', hostname='127.0.0.1',
                                                  private_key=key, certificate=cert)
@@ -358,7 +363,10 @@ class ManagementCommandPushNotificationTest(TestCase):
                 del settings.IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS
         else:
             settings.IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS = self.IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS
-        self.test_server_proc.kill()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.test_server_proc.kill()
 
 
 class ManagementCommandCallFeedbackService(TestCase):
