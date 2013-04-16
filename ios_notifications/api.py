@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 
 from django.http import HttpResponseNotAllowed, QueryDict
 from django.views.decorators.csrf import csrf_exempt
@@ -58,7 +59,11 @@ class DeviceResource(BaseResource):
         Creates a new device or updates an existing one to `is_active=True`.
         Expects two non-options POST parameters: `token` and `service`.
         """
-        devices = Device.objects.filter(token=request.POST.get('token'),
+        token = request.POST.get('token')
+        if token is not None:
+            # Strip out any special characters that may be in the token
+            token = re.sub('<|>|\s', '', token)
+        devices = Device.objects.filter(token=token,
                                         service__id=int(request.POST.get('service', 0)))
         if devices.exists():
             device = devices.get()
