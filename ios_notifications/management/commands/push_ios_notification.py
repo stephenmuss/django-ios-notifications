@@ -41,6 +41,10 @@ class Command(BaseCommand):
                     help='Prevent saving the notification in the database after pushing it.',
                     action='store_false',
                     dest='persist'),  # Note: same dest as --persist; they are mutually exclusive
+        make_option('--batch-size',
+                    help='Notifications are sent to devices in batches via the APN Service. This controls the batch size. Default is 100.',
+                    dest='chunk_size',
+                    default=100),
     )
 
     def handle(self, *args, **options):
@@ -72,9 +76,14 @@ class Command(BaseCommand):
         if extra is not None:
             notification.extra = json.loads(extra)
 
+        try:
+            chunk_size = int(options['chunk_size'])
+        except ValueError:
+            raise CommandError('The --batch-size option should be an integer value.')
+
         if not notification.is_valid_length():
             raise CommandError('Notification exceeds the maximum payload length. Try making your message shorter.')
 
-        service.push_notification_to_devices(notification)
+        service.push_notification_to_devices(notification, chunk_size=chunk_size)
         if 'test' not in sys.argv:
             self.stdout.write('Notification pushed successfully\n')
