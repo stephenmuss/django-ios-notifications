@@ -64,6 +64,12 @@ class Command(BaseCommand):
         except APNService.DoesNotExist:
             raise CommandError('APNService with id %d does not exist' % service_id)
 
+        message = options['message']
+        extra = options['extra']
+
+        if not message and not extra:
+            raise CommandError('To send a notification you must provide either the --message or --extra option.')
+
         notification = Notification(message=options['message'],
                                     badge=options['badge'],
                                     service=service,
@@ -72,7 +78,6 @@ class Command(BaseCommand):
         if options['persist'] is not None:
             notification.persist = options['persist']
 
-        extra = options['extra']
         if extra is not None:
             notification.extra = json.loads(extra)
 
