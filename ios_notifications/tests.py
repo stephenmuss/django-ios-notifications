@@ -353,6 +353,10 @@ class ManagementCommandPushNotificationTest(TestCase):
         self.assertTrue(Notification.objects.filter(message=msg, last_sent_at__gt=self.started_at).exists())
         self.assertTrue(self.device in Device.objects.filter(last_notified_at__gt=self.started_at))
 
+    def test_either_message_or_extra_option_required(self):
+        with self.assertRaises(management.base.CommandError):
+            management.call_command('push_ios_notification', service=self.service.pk, verbosity=0)
+
     def tearDown(self):
         if self.IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS == 'NotSpecified':
             if hasattr(settings, 'IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS'):
