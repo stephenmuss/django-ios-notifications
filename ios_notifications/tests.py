@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import subprocess
-import time
 import struct
 import os
 import json
@@ -34,7 +33,6 @@ class APNServiceTest(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.test_server_proc = subprocess.Popen(SSL_SERVER_COMMAND, stdout=subprocess.PIPE)
-        time.sleep(0.5)  # Wait for test server to be started
 
     def setUp(self):
         cert, key = generate_cert_and_pkey()
@@ -242,7 +240,6 @@ class NotificationTest(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.test_server_proc = subprocess.Popen(SSL_SERVER_COMMAND, stdout=subprocess.PIPE)
-        time.sleep(0.5)
 
     def setUp(self):
         cert, key = generate_cert_and_pkey()
@@ -311,7 +308,6 @@ class ManagementCommandPushNotificationTest(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.test_server_proc = subprocess.Popen(SSL_SERVER_COMMAND, stdout=subprocess.PIPE)
-        time.sleep(0.5)  # Wait for test server to be started
 
     def setUp(self):
         self.started_at = dt_now()
