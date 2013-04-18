@@ -106,6 +106,9 @@ class APNService(BaseService):
         if not isinstance(notification, Notification):
             raise TypeError('notification should be an instance of ios_notifications.models.Notification')
 
+        if not isinstance(chunk_size, int) or chunk_size < 1:
+            raise ValueError('chunk_size must be an integer greater than zero.')
+
         payload = notification.payload
 
         # Split the devices into manageable chunks.
