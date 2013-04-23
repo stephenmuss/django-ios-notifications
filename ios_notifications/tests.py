@@ -4,7 +4,9 @@ import struct
 import os
 import json
 import uuid
+import StringIO
 
+import django
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
@@ -354,8 +356,13 @@ class ManagementCommandPushNotificationTest(TestCase):
         self.assertTrue(self.device in Device.objects.filter(last_notified_at__gt=self.started_at))
 
     def test_either_message_or_extra_option_required(self):
-        with self.assertRaises(management.base.CommandError):
-            management.call_command('push_ios_notification', service=self.service.pk, verbosity=0)
+        # In Django < 1.5 django.core.management.base.BaseCommand.execute
+        # catches CommandError and raises SystemExit instead.
+        exception = SystemExit if django.VERSION < (1, 5) else management.base.CommandError
+
+        with self.assertRaises(exception):
+            management.call_command('push_ios_notification', service=self.service.pk,
+                                    verbosity=0, stderr=StringIO.StringIO())
 
     def tearDown(self):
         if self.IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS == 'NotSpecified':
