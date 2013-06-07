@@ -96,6 +96,8 @@ class APNServiceTest(TestCase):
 
 
 class APITest(TestCase):
+    urls = 'ios_notifications.urls'
+
     def setUp(self):
         self.service = APNService.objects.create(name='sandbox', hostname='gateway.sandbox.push.apple.com')
         self.device_token = TOKEN
@@ -165,6 +167,8 @@ class APITest(TestCase):
 
 
 class AuthenticationDecoratorTestAuthBasic(TestCase):
+    urls = 'ios_notifications.urls'
+
     def setUp(self):
         self.service = APNService.objects.create(name='sandbox', hostname='gateway.sandbox.push.apple.com')
         self.device_token = TOKEN
