@@ -63,9 +63,9 @@ class Migration(SchemaMigration):
         db.create_table('ios_notifications_device_users', (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
             ('device', models.ForeignKey(orm['ios_notifications.device'], null=False)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=User)),
+            (User._meta.module_name, self.gf('django.db.models.fields.related.ForeignKey')(to=User)),
         ))
-        db.create_unique('ios_notifications_device_users', ['device_id', 'user_id'])
+        db.create_unique('ios_notifications_device_users', ['device_id', '%_id' % User._meta.module_name])
 
         # Adding model 'FeedbackService'
         db.create_table('ios_notifications_feedbackservice', (
