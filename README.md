@@ -7,11 +7,13 @@ Django iOS Notifications makes it easy to send push notifications to iOS devices
 Installation
 -----------------
 
-The minimum Python version supported is Python 2.6 while the minimum Django version required is 1.3.
+
+Minimum Requirements
 
 * Python 2.6 or greater
-* 
-There are also two other hard dependencies:
+* Django 1.3 or greater
+
+Two other hard dependencies:
 
 * `pyOpenSSL >= 0.10`
 * `django-fields >= 0.1.2`
