@@ -13,7 +13,7 @@ Minimum Requirements
 * Python 2.6 or greater
 * Django 1.3 or greater
 
-Two other hard dependencies:
+Two hard dependencies:
 
 * `pyOpenSSL >= 0.10`
 * `django-fields >= 0.1.2`
@@ -21,11 +21,10 @@ Two other hard dependencies:
 * * *
 
 1. You can install with pip: `pip install django-ios-notifications`.
-2. Add `ios_notifications` to `INSTALLED_APPS` in settings file2.
-3. After installation, add `ios_notifications` to INSTALLED_APPS in Django settings file.
-4. If you want to use the API for registering devices you will need to make the appropriate changes to your urls file.
+2. Add `ios_notifications` to `INSTALLED_APPS` in settings file.
+3. If you want to use the API for registering devices you will need to make the appropriate changes to your urls file.
 	* `url(r'^ios-notifications/', include('ios_notifications.urls'))`
-5. Create required database tables. 
+4. Create required database tables. 
 	* `./manage.py syncdb` 
 	* If using south `./manage.py migrate ios_notifications`
 
