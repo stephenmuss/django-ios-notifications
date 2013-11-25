@@ -138,7 +138,7 @@ class APNService(BaseService):
                     # if the device no longer accepts push notifications from your app
                     # and you send one to it anyways, Apple immediately drops the connection to your APNS socket.
                     # http://stackoverflow.com/a/13332486/1025116
-                    self._write_message(notification, chunk[i + 1:])
+                    self._write_message(notification, chunk[i + 1:], chunk_size)
 
             self._disconnect()
 
