@@ -268,7 +268,7 @@ class Device(models.Model):
         if not isinstance(notification, Notification):
             raise TypeError('notification should be an instance of ios_notifications.models.Notification')
 
-        notification.service.push_notification_to_devices(notification, [self])
+        self.service.push_notification_to_devices(notification, [self])
 
     def __unicode__(self):
         return self.token
