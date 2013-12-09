@@ -187,6 +187,7 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     last_sent_at = models.DateTimeField(null=True, blank=True)
     custom_payload = models.CharField(max_length=240, blank=True, help_text='JSON representation of an object containing custom payload.')
+    loc_payload = models.CharField(max_length=240, blank=True, help_text="JSON representation of an object containing the localization payload.")
 
     def __init__(self, *args, **kwargs):
         self.persist = getattr(settings, 'IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS', True)
@@ -213,6 +214,28 @@ class Notification(models.Model):
                 raise TypeError('must be a valid Python dictionary')
             self.custom_payload = json.dumps(value)  # Raises a TypeError if can't be serialized
 
+    @property
+    def loc_data(self):
+        """
+        The loc_data property is used to specify localization paramaters within the 'alert' aps key.
+        https://developer.apple.com/library/ios/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/Chapters/ApplePushService.html
+        """
+        return json.loads(self.loc_payload) if self.loc_payload else None
+
+    def set_loc_data(self, loc_key, loc_args, action_loc_key=None):
+        if not isinstance(loc_args, (list, tuple)):
+            raise TypeError("loc_args must be a list or tuple.")
+
+        loc_data = {
+            "loc-key": unicode(loc_key),
+            "loc-args": [unicode(a) for a in loc_args],
+        }
+
+        if action_loc_key:
+            loc_data['action-loc-key'] = unicode(action_loc_key)
+
+        self.loc_payload = json.dumps(loc_data)
+
     def push_to_all_devices(self):
         """
         Pushes this notification to all active devices using the
@@ -231,8 +254,13 @@ class Notification(models.Model):
     @property
     def payload(self):
         aps = {}
-        if self.message:
+
+        loc_data = self.loc_data
+        if loc_data:
+            aps['alert'] = loc_data
+        elif self.message:
             aps['alert'] = self.message
+
         if self.badge is not None:
             aps['badge'] = self.badge
         if self.sound:
