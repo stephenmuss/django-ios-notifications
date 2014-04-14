@@ -18,6 +18,7 @@ from django_fields.fields import EncryptedCharField
 import OpenSSL
 
 from .exceptions import NotificationPayloadSizeExceeded, InvalidPassPhrase
+from .settings import get_setting
 
 
 class BaseService(models.Model):
@@ -189,7 +190,7 @@ class Notification(models.Model):
     custom_payload = models.CharField(max_length=240, blank=True, help_text='JSON representation of an object containing custom payload.')
 
     def __init__(self, *args, **kwargs):
-        self.persist = getattr(settings, 'IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS', True)
+        self.persist = get_setting('IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS')
         super(Notification, self).__init__(*args, **kwargs)
 
     def __unicode__(self):

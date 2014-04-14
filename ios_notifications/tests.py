@@ -9,6 +9,7 @@ import StringIO
 import django
 from django.test import TestCase
 from django.test.utils import override_settings
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.http import HttpResponseNotAllowed
@@ -24,6 +25,7 @@ from .models import APNService, Device, Notification, NotificationPayloadSizeExc
 from .http import JSONResponse
 from .utils import generate_cert_and_pkey
 from .forms import APNServiceForm
+from .settings import get_setting
 
 TOKEN = '0fd12510cfe6b0a4a89dc7369c96df956f991e66131dab63398734e8000d0029'
 TEST_PEM = os.path.abspath(os.path.join(os.path.dirname(__file__), 'test.pem'))
@@ -339,7 +341,6 @@ class ManagementCommandPushNotificationTest(UseMockSSLServerMixin, TestCase):
     def test_call_push_ios_notification_command_default_persist_not_specified(self):
         try:
             # making sure that IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS is not specified in app settings, otherwise this test means nothing
-            from django.conf import settings
             del settings.IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS
         except AttributeError:
             pass
@@ -360,3 +361,16 @@ class ManagementCommandPushNotificationTest(UseMockSSLServerMixin, TestCase):
 
 class ManagementCommandCallFeedbackService(TestCase):
     pass
+
+
+class DefaultSettings(TestCase):
+    def test_persist_notifications_setting(self):
+        self.assertEqual(True, get_setting('IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS'))
+
+    def test_authentication_setting(self):
+        self.assertEqual(None, get_setting('IOS_NOTIFICATIONS_AUTHENTICATION'))
+
+    def test_invalid_setting(self):
+        setting_name = '_THIS_SETTING_SHOULD_NOT_EXIST__________'
+        with self.assertRaises(KeyError):
+            get_setting(setting_name)
