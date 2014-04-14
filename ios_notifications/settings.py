@@ -15,6 +15,10 @@ defaults = {
             }
 
 def get_setting(name):
-    # try to get the user setting by the given name, providing an ios_notifications default otherwise
-    # by design, this will crash if 'name' is neither a user setting nor a vlaid ios_notifications setting
+    '''
+    Get user setting by name, providing ios_notification default if necessary.
+
+    By design, this will crash if 'name' is neither a user app setting (default or user-specified)
+    nor a valid ios_notifications setting that has a default value.
+    '''
     return getattr(settings, name, defaults[name])

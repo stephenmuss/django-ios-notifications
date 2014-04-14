@@ -370,6 +370,9 @@ class DefaultSettings(TestCase):
     def test_authentication_setting(self):
         self.assertEqual(None, get_setting('IOS_NOTIFICATIONS_AUTHENTICATION'))
 
+    def test_auth_user_model(self):
+        self.assertEqual('auth.User', get_setting('AUTH_USER_MODEL'))
+
     def test_invalid_setting(self):
         setting_name = '_THIS_SETTING_SHOULD_NOT_EXIST__________'
         with self.assertRaises(KeyError):
