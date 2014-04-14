@@ -1,6 +1,9 @@
 from django.conf import settings
 
 defaults = {
+            # Default user model if no custom user model is specified
+            'AUTH_USER_MODEL': 'auth.User',
+
             # Whether Notification model instances are automatically saved when they are pushed.
             # Expected values: True, False.
             'IOS_NOTIFICATIONS_PERSIST_NOTIFICATIONS': True,
