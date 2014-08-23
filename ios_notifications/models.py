@@ -241,7 +241,7 @@ class Notification(models.Model):
         extra = self.extra
         if extra is not None:
             message.update(extra)
-        payload = json.dumps(message, separators=(',', ':'))
+        payload = json.dumps(message, separators=(',', ':'), ensure_ascii=False).encode('utf8')
         return payload
 
 
