@@ -271,6 +271,15 @@ class NotificationTest(UseMockSSLServerMixin, TestCase):
         self.assertEqual(self.notification.extra, custom_payload)
         self.assertTrue(self.notification.is_valid_length())
 
+    def test_loc_data_payload(self):
+        self.notification.set_loc_data('TEST_1', [1, 'ab', 1.2, 'CD'])
+        self.notification.message = 'test message'
+        loc_data = {'loc-key': 'TEST_1', 'loc-args': ['1', 'ab', '1.2', 'CD']}
+        self.assertEqual(self.notification.loc_data, loc_data)
+        self.assertTrue(self.notification.is_valid_length())
+        p = self.notification.payload
+        self.assertEqual(json.loads(p)['aps']['alert'], loc_data)
+
     def test_extra_property_not_dict(self):
         with self.assertRaises(TypeError):
             self.notification.extra = 111
