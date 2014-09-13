@@ -183,6 +183,7 @@ class Notification(models.Model):
     service = models.ForeignKey(APNService)
     message = models.CharField(max_length=200, blank=True, help_text='Alert message to display to the user. Leave empty if no alert should be displayed to the user.')
     badge = models.PositiveIntegerField(null=True, blank=True, help_text='New application icon badge number. Set to None if the badge number must not be changed.')
+    slient = models.PositiveIntegerField(null=True, blank=True, help_text='set True to send a slient notification')
     sound = models.CharField(max_length=30, blank=True, help_text='Name of the sound to play. Leave empty if no sound should be played.')
     created_at = models.DateTimeField(auto_now_add=True)
     last_sent_at = models.DateTimeField(null=True, blank=True)
@@ -265,6 +266,8 @@ class Notification(models.Model):
             aps['badge'] = self.badge
         if self.sound:
             aps['sound'] = self.sound
+        if self.slient:
+            aps['content-available'] = 1
         message = {'aps': aps}
         extra = self.extra
         if extra is not None:
