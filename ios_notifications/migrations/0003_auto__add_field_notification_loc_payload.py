@@ -77,7 +77,7 @@ class Migration(SchemaMigration):
             'platform': ('django.db.models.fields.CharField', [], {'max_length': '30', 'null': 'True', 'blank': 'True'}),
             'service': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ios_notifications.APNService']"}),
             'token': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
-            'users': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'ios_devices'", 'null': 'True', 'symmetrical': 'False', 'to': u"orm['users.User']"})
+            'users': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'ios_devices'", 'null': 'True', 'symmetrical': 'False', 'to': u"orm['auth.User']"})
         },
         'ios_notifications.feedbackservice': {
             'Meta': {'unique_together': "(('name', 'hostname'),)", 'object_name': 'FeedbackService'},
