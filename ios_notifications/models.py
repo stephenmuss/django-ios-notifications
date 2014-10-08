@@ -16,6 +16,12 @@ except ImportError:
 from django_fields.fields import EncryptedCharField
 import OpenSSL
 
+try:
+    import gevent_openssl
+    GEVENT_OPEN_SSL=True
+else:
+    GEVENT_OPEN_SSL=False
+
 from .exceptions import NotificationPayloadSizeExceeded, InvalidPassPhrase
 from .settings import get_setting
 
@@ -49,7 +55,10 @@ class BaseService(models.Model):
         context = OpenSSL.SSL.Context(OpenSSL.SSL.TLSv1_METHOD)
         context.use_certificate(cert)
         context.use_privatekey(pkey)
-        self.connection = OpenSSL.SSL.Connection(context, sock)
+        if GEVENT_OPEN_SSL:
+            gevent_openssl.SSL.Connection(context, sock)
+        else:
+            self.connection = OpenSSL.SSL.Connection(context, sock)
         self.connection.connect((self.hostname, self.PORT))
         self.connection.set_connect_state()
         self.connection.do_handshake()
