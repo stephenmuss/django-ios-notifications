@@ -46,7 +46,7 @@ class BaseService(models.Model):
             pkey = OpenSSL.crypto.load_privatekey(*args)
         except OpenSSL.crypto.Error:
             raise InvalidPassPhrase
-        context = OpenSSL.SSL.Context(OpenSSL.SSL.SSLv3_METHOD)
+        context = OpenSSL.SSL.Context(OpenSSL.SSL.TLSv1_METHOD)
         context.use_certificate(cert)
         context.use_privatekey(pkey)
         self.connection = OpenSSL.SSL.Connection(context, sock)
