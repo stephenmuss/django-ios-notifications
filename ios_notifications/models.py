@@ -56,7 +56,7 @@ class BaseService(models.Model):
         context.use_certificate(cert)
         context.use_privatekey(pkey)
         if GEVENT_OPEN_SSL:
-            gevent_openssl.SSL.Connection(context, sock)
+            self.connection = gevent_openssl.SSL.Connection(context, sock)
         else:
             self.connection = OpenSSL.SSL.Connection(context, sock)
         self.connection.connect((self.hostname, self.PORT))
