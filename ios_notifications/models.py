@@ -19,7 +19,7 @@ import OpenSSL
 try:
     import gevent_openssl
     GEVENT_OPEN_SSL=True
-else:
+except:
     GEVENT_OPEN_SSL=False
 
 from .exceptions import NotificationPayloadSizeExceeded, InvalidPassPhrase
