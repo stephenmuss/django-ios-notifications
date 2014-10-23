@@ -3,3 +3,4 @@
 *.pyc
 *.swp
 build
+.DS_Store
