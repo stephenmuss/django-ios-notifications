@@ -20,7 +20,9 @@ Two hard dependencies:
 
 * * *
 
-1. You can install with pip: `pip install django-ios-notifications`.
+1. You can install with pip: 
+	* `pip install django-ios-notifications` to get the latest release version
+	* `pip install git+https://github.com/stephenmuss/django-ios-notifications.git#egg=django-ios-notifications` to install the latest bleeding-edge/development version
 2. Add `ios_notifications` to `INSTALLED_APPS` in settings file.
 3. If you want to use the API for registering devices you will need to make the appropriate changes to your urls file.
 	* `url(r'^ios-notifications/', include('ios_notifications.urls'))`
