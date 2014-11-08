@@ -8,7 +8,12 @@ import StringIO
 
 import django
 from django.test import TestCase
-from django.test.utils import override_settings
+
+try:
+    from django.test.utils import override_settings
+except ImportError:
+    from override_settings import override_settings
+
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 
+import django
 from django.http import HttpResponseNotAllowed, QueryDict
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
@@ -27,7 +28,7 @@ class BaseResource(object):
         if method in self.allowed_methods:
             if hasattr(self, method.lower()):
                 if method == 'PUT':
-                    request.PUT = QueryDict(request.raw_post_data).copy()
+                    request.PUT = QueryDict(request.body if django.VERSION >= (1, 4) else request.raw_post_data).copy()
                 return getattr(self, method.lower())(request, **kwargs)
 
             return HttpResponseNotImplemented()
