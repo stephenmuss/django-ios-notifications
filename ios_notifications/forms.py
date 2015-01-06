@@ -10,11 +10,13 @@ from .models import Device, APNService
 class DeviceForm(forms.ModelForm):
     class Meta:
         model = Device
+        exclude = []
 
 
 class APNServiceForm(forms.ModelForm):
     class Meta:
         model = APNService
+        exclude = []
 
     START_CERT = '-----BEGIN CERTIFICATE-----'
     END_CERT = '-----END CERTIFICATE-----'
