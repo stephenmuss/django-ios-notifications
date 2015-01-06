@@ -16,7 +16,7 @@ Minimum Requirements
 Two hard dependencies:
 
 * `pyOpenSSL >= 0.10`
-* `django-fields >= 0.1.2`
+* `django-fields >= 0.2.2`
 
 * * *
 
@@ -29,6 +29,12 @@ Two hard dependencies:
 4. Create required database tables. 
 	* `./manage.py syncdb` 
 	* If using south `./manage.py migrate ios_notifications`
+
+
+Notes on Upgrading to 0.2.0
+-----------------
+If you are upgrading to 0.2.0 from an older verion and you use password protection in any of your `APNService`s you will need to renter the password and resave the model for each one.
+This is due to changes in more recent versions of `django-fields`.
 
 
 Setting up the APN Services
