@@ -190,7 +190,7 @@ class Notification(models.Model):
     Represents a notification which can be pushed to an iOS device.
     """
     service = models.ForeignKey(APNService)
-    message = models.CharField(max_length=200, blank=True, help_text='Alert message to display to the user. Leave empty if no alert should be displayed to the user.')
+    message = models.CharField(max_length=2048, blank=True, help_text='Alert message to display to the user. Leave empty if no alert should be displayed to the user.')
     badge = models.PositiveIntegerField(null=True, blank=True, help_text='New application icon badge number. Set to None if the badge number must not be changed.')
     silent = models.NullBooleanField(null=True, blank=True, help_text='set True to send a silent notification')
     sound = models.CharField(max_length=30, blank=True, help_text='Name of the sound to play. Leave empty if no sound should be played.')
