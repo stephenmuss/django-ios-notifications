@@ -293,7 +293,7 @@ class Device(models.Model):
     is_active = models.BooleanField(default=True)
     deactivated_at = models.DateTimeField(null=True, blank=True)
     service = models.ForeignKey(APNService)
-    users = models.ManyToManyField(get_setting('AUTH_USER_MODEL'), null=True, blank=True, related_name='ios_devices')
+    users = models.ManyToManyField(get_setting('AUTH_USER_MODEL'), blank=True, related_name='ios_devices')
     added_at = models.DateTimeField(auto_now_add=True)
     last_notified_at = models.DateTimeField(null=True, blank=True)
     platform = models.CharField(max_length=30, blank=True, null=True)
