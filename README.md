@@ -1,6 +1,8 @@
 django-ios-notifications
 =================
 
+[![Build Status](https://travis-ci.org/stephenmuss/django-ios-notifications.svg?branch=master)](https://travis-ci.org/stephenmuss/django-ios-notifications)
+
 Django iOS Notifications makes it easy to send push notifications to iOS devices.
 
 
@@ -10,8 +12,8 @@ Installation
 
 Minimum Requirements
 
-* Python 2.6 or greater
-* Django 1.3 or greater
+* Python 2.7
+* Django 1.6 or greater
 
 Two hard dependencies:
 
@@ -20,14 +22,14 @@ Two hard dependencies:
 
 * * *
 
-1. You can install with pip: 
+1. You can install with pip:
 	* `pip install django-ios-notifications` to get the latest release version
 	* `pip install git+https://github.com/stephenmuss/django-ios-notifications.git#egg=django-ios-notifications` to install the latest bleeding-edge/development version
 2. Add `ios_notifications` to `INSTALLED_APPS` in settings file.
 3. If you want to use the API for registering devices you will need to make the appropriate changes to your urls file.
 	* `url(r'^ios-notifications/', include('ios_notifications.urls'))`
-4. Create required database tables. 
-	* `./manage.py syncdb` 
+4. Create required database tables.
+	* `./manage.py syncdb`
 	* If using south `./manage.py migrate ios_notifications`
 
 
