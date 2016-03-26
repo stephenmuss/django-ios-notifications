@@ -30,7 +30,19 @@ Two hard dependencies:
 	* `url(r'^ios-notifications/', include('ios_notifications.urls'))`
 4. Create required database tables.
 	* `./manage.py syncdb`
-	* If using south `./manage.py migrate ios_notifications`
+	* If using south `./manage.py migrate ios_notifications` also see older django note below.
+
+
+Django 1.6 or below
+-------------------
+
+You must configure south by adding the following lines to your settings file.
+
+```
+    SOUTH_MIGRATION_MODULES = {
+        'ios_notifications': 'ios_notifications.south_migrations',
+    }
+```
 
 
 Notes on Upgrading to 0.2.0
@@ -297,7 +309,7 @@ The `call_feedback_service` command takes one required argument:
 A full example: `./manage.py call_feedback_service --feedback-service=123`
 
 __NOTE:__ You may experience some issues testing the feedback service in a sandbox enviroment.
-This occurs when an app was the last push enabled app for that particular APN Service on the device 
+This occurs when an app was the last push enabled app for that particular APN Service on the device
 Once the app is removed it tears down the persistent connection to the APN service. If you want to
 test a feedback service, ensure that you have at least one other app on the device installed which
 receives notifications from the same APN service.
