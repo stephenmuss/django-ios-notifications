@@ -26,7 +26,10 @@ setup(
     install_requires=[
         'Django>=1.3',
         'pyOpenSSL>=0.10',
-        'django-fields>=0.2.2'
+        'django-fields>=0.3.0'
     ],
+    dependency_links=[
+        'https://github.com/nautilebleu/django-fields/tarball/master#egg=django-fields-0.3.0',
+    ],    
     zip_safe=False
 )
