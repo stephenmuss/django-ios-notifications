@@ -1,14 +1,9 @@
 # -*- coding: utf-8 -*-
 
-try:
-    from django.conf.urls import patterns, url
-except ImportError:  # deprecated since Django 1.4
-    from django.conf.urls.defaults import patterns, url
-
+from django.conf.urls import url
 from django.contrib import admin
 from django.template.response import TemplateResponse
 from django.shortcuts import get_object_or_404
-
 from .models import Device, Notification, APNService, FeedbackService
 from .forms import APNServiceForm
 
@@ -34,9 +29,9 @@ class NotificationAdmin(admin.ModelAdmin):
 
     def get_urls(self):
         urls = super(NotificationAdmin, self).get_urls()
-        notification_urls = patterns('',
+        notification_urls = ['',
                                      url(r'^(?P<id>\d+)/push-notification/$', self.admin_site.admin_view(self.admin_push_notification),
-                                     name='admin_push_notification'),)
+                                     name='admin_push_notification'),]
         return notification_urls + urls
 
     def admin_push_notification(self, request, **kwargs):

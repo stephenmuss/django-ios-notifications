@@ -1,4 +1,4 @@
-django-fields==0.2.2
+django-fields==0.3.0
 pyOpenSSL==0.13.1
 pycrypto==2.6
 wsgiref==0.1.2
