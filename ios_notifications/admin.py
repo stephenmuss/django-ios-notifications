@@ -29,9 +29,10 @@ class NotificationAdmin(admin.ModelAdmin):
 
     def get_urls(self):
         urls = super(NotificationAdmin, self).get_urls()
-        notification_urls = ['',
-                                     url(r'^(?P<id>\d+)/push-notification/$', self.admin_site.admin_view(self.admin_push_notification),
-                                     name='admin_push_notification'),]
+        notification_urls = [
+            url(r'^(?P<id>\d+)/push-notification/$', self.admin_site.admin_view(self.admin_push_notification),
+            name='admin_push_notification'),
+        ]
         return notification_urls + urls
 
     def admin_push_notification(self, request, **kwargs):
