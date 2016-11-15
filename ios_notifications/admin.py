@@ -29,9 +29,10 @@ class NotificationAdmin(admin.ModelAdmin):
 
     def get_urls(self):
         urls = super(NotificationAdmin, self).get_urls()
-        notification_urls = ['',
-                                     url(r'^(?P<id>\d+)/push-notification/$', self.admin_site.admin_view(self.admin_push_notification),
-                                     name='admin_push_notification'),]
+        notification_urls = [
+            url(r'^(?P<id>\d+)/push-notification/$', self.admin_site.admin_view(self.admin_push_notification),
+            name='admin_push_notification'),
+        ]
         return notification_urls + urls
 
     def admin_push_notification(self, request, **kwargs):
@@ -41,9 +42,9 @@ class NotificationAdmin(admin.ModelAdmin):
             service = notification.service
             num_devices = service.device_set.filter(is_active=True).count()
             notification.service.push_notification_to_devices(notification)
+        request.current_app = 'ios_notifications'
         return TemplateResponse(request, 'admin/ios_notifications/notification/push_notification.html',
-                                {'notification': notification, 'num_devices': num_devices, 'sent': request.method == 'POST'},
-                                current_app='ios_notifications')
+                                {'notification': notification, 'num_devices': num_devices, 'sent': request.method == 'POST'})
 
 admin.site.register(Device, DeviceAdmin)
 admin.site.register(Notification, NotificationAdmin)
