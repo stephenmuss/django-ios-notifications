@@ -346,6 +346,8 @@ class FeedbackService(BaseService):
         try:
             while True:
                 data = self.connection.recv(38)  # 38 being the length in bytes of the binary format feedback tuple.
+                if len(data) == 0:
+                    raise OpenSSL.SSL.ZeroReturnError()
                 timestamp, token_length, token = struct.unpack(self.fmt, data)
                 device_token = hexlify(token)
                 device_tokens.append(device_token)
